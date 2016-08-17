@@ -1,6 +1,5 @@
 <?php
 
-$sidebar = '';
 
 $content = '
     <h2>Welcome</h2>
@@ -13,9 +12,12 @@ $content = '
     available by clicking throughout the tabs in the menu (above) and the specialised
     submenus for every section (on the left)
     </p>
+    </br>
     <h4>Happy Management!</h4>
     ';
 
-include('theme/base.php')
+$no_sidebar = True;
+
+include($_SERVER['DOCUMENT_ROOT'].'/theme/base.php')
 
 ?>

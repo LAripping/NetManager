@@ -2,39 +2,41 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="stylesheet" type="text/css" href="/theme/style.css" />
 <title>Management Console</title>
 </head>
 
 <body>
 <div id="container">
 		<div id="header">
-        	<h1>Management  <span class="off">Console</span></h1>
+        	<h1><a href='/index.php'>Management  <span class="off">Console</span></a></h1>
         </div>
 
         <div id="menu">
         	<ul>
-                <li class="menuitem"><a href="fcaps.php">FCAPS model</a></li>
+                <li class="menuitem"><a href="/fcaps/index.php">FCAPS model</a></li>
 <!-- TODO complete fcaps.php business logic-->
-                <li class="menuitem"><a href="devices.php">Devices</a></li>
+                <li class="menuitem"><a href="/devices.php">Devices</a></li>
 <!-- TODO add protocols.php business logic-->
-                <li class="menuitem"><a href="protocols.php">Protocols</a></li>
+                <li class="menuitem"><a href="/protocols.php">Protocols</a></li>
 <!-- TODO add devices.php business logic-->
-                <li class="menuitem"><a href="wifi.php">WiFi Analysis</a></li>
+                <li class="menuitem"><a href="/wifi.php">WiFi Analysis</a></li>
 <!-- TODO add wifi.php business logic-->
             </ul>
         </div>
 
+        <?php if( !isset($no_sidebar) ): ?>
         <div id="leftmenu">
             <div id="leftmenu_top"></div>
 		    <div id="leftmenu_main">
-                <h3> </h3>
+            <p></p>
                 <ul>
                     <?php echo $sidebar; ?>
                 </ul>
             </div>
             <div id="leftmenu_bottom"></div>
         </div>
+        <?php endif ?>
 
 		<div id="content">
             <div id="content_top"></div>
