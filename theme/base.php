@@ -15,13 +15,9 @@
         <div id="menu">
         	<ul>
                 <li class="menuitem"><a href="/fcaps/index.php">FCAPS model</a></li>
-<!-- TODO complete fcaps.php business logic-->
                 <li class="menuitem"><a href="/devices.php">Devices</a></li>
-<!-- TODO add protocols.php business logic-->
                 <li class="menuitem"><a href="/protocols.php">Protocols</a></li>
-<!-- TODO add devices.php business logic-->
-                <li class="menuitem"><a href="/wifi.php">WiFi Analysis</a></li>
-<!-- TODO add wifi.php business logic-->
+                <li class="menuitem"><a href="/wifi/index.php">WiFi Analysis</a></li>
             </ul>
         </div>
 

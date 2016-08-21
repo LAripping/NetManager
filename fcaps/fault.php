@@ -1,5 +1,6 @@
 <?php
 
+include($_SERVER['DOCUMENT_ROOT'].'/fcaps/sidebar.php');
 
 //Generate html code to fill the page's content
 $content = '    <h2>Fault Management</h2>
