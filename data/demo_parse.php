@@ -1,5 +1,8 @@
 <?php
 
+///////////////DEMO UNPREPARED SELECT////////////////////////////////////
+
+
 //include($_SERVER['DOCUMENT_ROOT'].'/wifi/sidebar.php');
 $no_sidebar = TRUE;
 
@@ -23,8 +26,11 @@ if ($result == TRUE && $result->num_rows > 0) {
 
 
 $content .= '</p></br>';
-///////////////////////////////////////////////////
+
+///////////////DEMO PARSE////////////////////////////////////
+
 $logfile = $_SERVER['DOCUMENT_ROOT'].'/nms.log';
+file_put_contents($logfile, ""); #Clear log
 
 $content = '<p> 5 PACKETS </br>';
 $count = 1;
