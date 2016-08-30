@@ -3,8 +3,8 @@
 ///////////////DEMO UNPREPARED SELECT////////////////////////////////////
 
 
-//include($_SERVER['DOCUMENT_ROOT'].'/wifi/sidebar.php');
-$no_sidebar = TRUE;
+include($_SERVER['DOCUMENT_ROOT'].'/data/sidebar.php');
+//$no_sidebar = TRUE;
 
 include($_SERVER['DOCUMENT_ROOT'].'/db_connect.php');
 #Returns an instanciated connection object ( $conn )
@@ -32,7 +32,8 @@ $content .= '</p></br>';
 $logfile = $_SERVER['DOCUMENT_ROOT'].'/nms.log';
 file_put_contents($logfile, ""); #Clear log
 
-$content = '<p> 5 PACKETS </br>';
+$content = '<p> Testing the XML parser... </br>';
+$content = '<strong>5 Packets</strong> should appear (also check the <a href="/nms.log">log file</a>) </br>';
 $count = 1;
 
 // Initialize the XML parser
