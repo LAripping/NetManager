@@ -211,10 +211,72 @@ function stop($parser,$element_name) {
             error_log("Protocols $_protos\n",3,$logfile);
             error_log("Fields $_fields\n",3,$logfile);
 
-            //Make insertions (and casts needed)
+
+
+            //Check if packet in already in DB
+            $q_select = $conn->prepare("SELECT id
+                                        FROM packet
+                                        WHERE time_captured = binary ?");
+            $q_select->bind_param('s',$fields[time_captured]);
+            if(! $q_select->execute() ){
+                error_log("ERROR: Couldn't execute statement $q_select.
+                    The error reported is '$q_select->error'.
+                    Skipping Packet\n\n",3,$logfile);
+            #   $conn->close();
+                break;
+            }
+            $q_select->bind_result($found_id);
+            $q_select->fetch();
+
+            if($found_id){
+                error_log("Packet already in DB (id=$found_id)
+                    Skipping\n\n",3,$logfile);
+                break;
+            }
+            $q_select->close(); 
+
+
+
+            //Insert packet (geninfo) fields only, then unset them
+            $q_insert = $conn->prepare("INSERT INTO packet(time_captured,num,packet_size)
+                                        VALUES(?, ?, ?)";
+            $q_insert->bind_param('sii',$fields['time_captured'],
+                                        $fields['num']
+                                        $fields['packet_size']);
+
+            if(! $q_insert->execute() ){
+                error_log("ERROR: Couldn't execute statement $q_insert,
+                    The error reported is '$q_insert->error'.
+                    Skipping Packet\n\n",3,$logfile);
+                break;
+            }
+            $in_id= $q_insert->insert_id;
+
+            unset($fields['time_captured']);
+            unset($fields['num']);
+            unset($fields['packet_size']);
+
+
+
+            //Update the packet tuple with the remaining fields TODO
+            $q_multy = '';
+            $q_update = "UPDATE.. %s .. %s .."
+            foreach($fields as $key => $value){
+                $q_multy .= $q_update % ($id,$key,$value);
+            #   unset( $fields[$key] );  DON'T unset. Use them later to check for
+            #                            insertions in other tables are to be done
+            }
+
+            $conn -> multi_query( $q_multy  );
+
+            //Insert protocols tuples
+
+            //Insert data from other 
+
 
             //Create FK tuples
             #$connn...
+
 
             //Mark the end of packet processing in log
             error_log("\n\n",3,$logfile);
@@ -259,8 +321,9 @@ while ($data=fread($fp,4096)) {
     }
 }
 
-// Free the XML parser
+// Free the XML parser and close DB connection
 xml_parser_free($parser);
+$conn->close();
 
 $content .= "</p>";
 
