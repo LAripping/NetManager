@@ -6,8 +6,9 @@ include($_SERVER['DOCUMENT_ROOT'].'/data/sidebar.php');
 
 
 
-//Get a connection object ( $conn )
+//Get a connection object
 include($_SERVER['DOCUMENT_ROOT'].'/db_connect.php');
+global $conn;
 
 //Clear the log
 $logfile = $_SERVER['DOCUMENT_ROOT'].'/nms.log';
@@ -24,6 +25,7 @@ $count = 0;     #packets parsed
 
 // Function to use at the start of an element
 function start($parser,$element_name,$element_attrs) {
+    global $conn;
     global $count,$logfile;
     global $protocols, $i, $fields;
 
@@ -199,6 +201,7 @@ function start($parser,$element_name,$element_attrs) {
 
 // Function to use at the end of an element
 function stop($parser,$element_name) {
+    global $conn;
     global $content,$count,$logfile;
     global $protocols, $fields;
 
@@ -213,13 +216,13 @@ function stop($parser,$element_name) {
 
 
 
-            //Check if packet in already in DB
+            //Check if packet is already in DB
             $q_select = $conn->prepare("SELECT id
                                         FROM packet
                                         WHERE time_captured = binary ?");
-            $q_select->bind_param('s',$fields[time_captured]);
+            $q_select->bind_param('s',$fields['time_captured']);
             if(! $q_select->execute() ){
-                error_log("ERROR: Couldn't execute statement $q_select.
+                error_log("ERROR: Couldn't execute select statement for packet #$count.
                     The error reported is '$q_select->error'.
                     Skipping Packet\n\n",3,$logfile);
             #   $conn->close();
@@ -233,24 +236,25 @@ function stop($parser,$element_name) {
                     Skipping\n\n",3,$logfile);
                 break;
             }
-            $q_select->close(); 
+            $q_select->close();
 
 
 
             //Insert packet (geninfo) fields only, then unset them
             $q_insert = $conn->prepare("INSERT INTO packet(time_captured,num,packet_size)
-                                        VALUES(?, ?, ?)";
+                                        VALUES(?, ?, ?)");
             $q_insert->bind_param('sii',$fields['time_captured'],
-                                        $fields['num']
+                                        $fields['num'],
                                         $fields['packet_size']);
 
             if(! $q_insert->execute() ){
-                error_log("ERROR: Couldn't execute statement $q_insert,
+                error_log("ERROR: Couldn't execute insert statement for packet #$count,
                     The error reported is '$q_insert->error'.
                     Skipping Packet\n\n",3,$logfile);
                 break;
             }
             $in_id= $q_insert->insert_id;
+            $q_insert->close();
 
             unset($fields['time_captured']);
             unset($fields['num']);
@@ -258,24 +262,29 @@ function stop($parser,$element_name) {
 
 
 
-            //Update the packet tuple with the remaining fields TODO
+            //Update the packet row with the remaining fields
             $q_multy = '';
-            $q_update = "UPDATE.. %s .. %s .."
+            $q_update = "UPDATE packet SET %s=%s WHERE id=$in_id;";
+
+            $non_packet = array('bssid','supported_rates','_unprotected');
             foreach($fields as $key => $value){
-                $q_multy .= $q_update % ($id,$key,$value);
-            #   unset( $fields[$key] );  DON'T unset. Use them later to check for
-            #                            insertions in other tables are to be done
+                if( in_array($key,$non_packet) || strstr($key,'DEVICE')){
+                    error_log("Skipping update for field $key...\n",3,$logfile);
+                    continue;
+                }
+                $q_multy .= sprintf($q_update, $key,$value);
             }
 
-            $conn -> multi_query( $q_multy  );
+            error_log("About to perform multiquery:\n$q_multy\n",3,$logfile);
+            if(! $conn->multi_query($q_multy) ){
+                error_log("ERROR: Couldn't execute multi-query for packet
+                    with id=$in_id. Skipping Packet\n\n",3,$logfile);
+                break;
+            }
 
-            //Insert protocols tuples
-
-            //Insert data from other 
+            //Insert the info found for other tables TODO
 
 
-            //Create FK tuples
-            #$connn...
 
 
             //Mark the end of packet processing in log
@@ -304,10 +313,12 @@ if(! xml_set_element_handler($parser,"start","stop") ){
 //}
 
 // Open XML file
-$filename = $_SERVER['DOCUMENT_ROOT'].'/b.xml';
+$filename = $_SERVER['DOCUMENT_ROOT'].'/afull.xml';
 if(! $fp=fopen($filename,"r") ){
-    error_log("Openning file failed\n");
+    error_log("Openning file failed\n",3,$logfile);
     exit;
+} else {
+    error_log("Opened file $filename for parsing\n\n",3,$logfile);
 }
 
 // Read data
@@ -325,7 +336,7 @@ while ($data=fread($fp,4096)) {
 xml_parser_free($parser);
 $conn->close();
 
-$content .= "</p>";
+$content = "";
 
 include($_SERVER['DOCUMENT_ROOT'].'/theme/base.php');
 
