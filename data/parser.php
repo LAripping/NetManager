@@ -1,12 +1,12 @@
 <?php
 
-include($_SERVER['DOCUMENT_ROOT'].'/data/populate_fumctions.php');
+include($_SERVER['DOCUMENT_ROOT'].'/data/populate_functions.php');
 
 
 
 
 
-function fill_fields(){
+function fill_fields($parser,$element_name,$element_attrs){
 	global $conn;
     global $count,$logfile;
     global $protocols, $i, $fields;
@@ -78,7 +78,7 @@ function fill_fields(){
                     //Is it an AP beacon?
                     if( $fields['type']== '8' ){
                         $fields['is_router'] = '1';
-                        error_log("--Beacon Packet! Let's look for some wlan info..."
+                        error_log("--Beacon Packet! Let's look for some wlan info...\n"
                             ,3,$logfile);
                     }
                     break;
@@ -189,13 +189,10 @@ function fill_fields(){
 
 // Function to use at the start of an element
 function start($parser,$element_name,$element_attrs) {
-    global $conn;
-    global $count,$logfile;
-    global $protocols, $i, $fields;
 
     #TODO avoid repopulations (effectively = reduce parser callbacks)
 	
-	fill_fields();
+	fill_fields($parser,$element_name,$element_attrs);
 }
 
 // Function to use at the end of an element
@@ -213,36 +210,36 @@ function stop($parser,$element_name) {
             error_log("Protocols $_protos\n",3,$logfile);
             error_log("Fields $_fields\n",3,$logfile);
 
-
-            //Check if packet is already in DB
-			ret = check_if_packet_exists(fields['time_captured'],$count);
-			if(ret==null || ret==True) break;
+     
+       		//Check if packet is already in DB
+			$ret = check_if_packet_exists($fields['time_captured'],$count);
+			if( is_null($ret) || $ret==True)	break;
 
 
             //Insert packet (geninfo) fields only, then unset them
-			ret = insert_geninfo($fields);
-			if(ret==null)	break;
-			$in_id = ret;
+			$ret = insert_geninfo($fields,$count);
+			if( is_null($ret))	break;
+			$in_id = $ret;
 		    unset($fields['time_captured']);
 		    unset($fields['num']);
 		    unset($fields['packet_size']);
 			
 
             //Update the packet row with the remaining fields
-            ret = insert_packet($fields,$count);
-			if(ret==null)	break;
+            $ret = insert_packet($fields,$count,$in_id);
+			if(is_null($ret))	break;
 
 
 
             //Insert the packet's protocol-rows
-            ret = insert_protocol($fields, $count);
-            if(ret==null) break;
+            $ret = insert_protocol($fields, $count, $in_id);
+            if(is_null($ret)) break;
             
             
             //Insert the rows in the remaining tables
             if( array_key_exists('ssid',$fields) ){
-            	ret == insert_rest($fields,$count);
-            	if(ret==null) break;
+            	$ret == insert_rest($fields,$count);
+            	if(is_null($ret)) break;
             }
             	
             
@@ -257,6 +254,17 @@ function stop($parser,$element_name) {
             break;
     }
 }
+
+
+
+// Initialize the XML parser
+if(! $parser=xml_parser_create() ){
+    error_log("Parse creation failed\n",3,$logfile);
+    exit;
+}
+
+
+
 
 // (NOT USED) Function to use when finding character data
 function char($parser,$data) {
@@ -281,11 +289,7 @@ if(! xml_set_element_handler($parser,"start","stop") ){
 
 
 
-// Initialize the XML parser
-if(! $parser=xml_parser_create() ){
-    error_log("Parse creation failed\n",3,$logfile);
-    exit;
-}
+
 
 
 ?>

@@ -22,9 +22,9 @@ function check_if_packet_exists( $time,$count ){
             Skipping Packet\n\n",3,$logfile);
         return null;
     }
+    
     $q_select->bind_result($found_id);
     $q_select->fetch();
-	$q_select->close();
     
 	if($found_id){
         error_log("Packet already in DB (id=$found_id)
@@ -57,20 +57,18 @@ function insert_geninfo( $fields,$count ){
     }
     $in_id= $q_insert->insert_id;
     $q_insert->close();
-	return True;
+	return $in_id;
 }
 
 
 
-function insert_packet( $fields,$count ){
+function insert_packet( $fields,$count,$in_id ){
 	global $conn,$logfile;
 
 	if(array_key_exists('_unprotected',$fields)
        && $fields['type']=='2'){
 	    $fields['uprotected']='1';
-    } else{
-        $fields['unprotected']='0';
-    }
+    } 
 
     $q_multy = '';
     $q_update = "UPDATE packet SET %s=%s WHERE id=$in_id;";
@@ -95,18 +93,18 @@ function insert_packet( $fields,$count ){
 
 
 
-function insert_protocol( $fields,$packet ){
-	global $conn, $logfile;
+function insert_protocol( $fields,$count,$in_id ){
+	global $conn, $logfile, $protocols;
 	
 	$q_insert_p = $conn->prepare("INSERT INTO packet_has_protocol
                                   (packet_id,protocol_name)
                                   VALUES($in_id,?)");
     foreach($protocols as $i => $name){
         $q_insert_p->bind_param('s',$name);
-        if(! $q_insert->execute() ){
+        if(! $q_insert_p->execute() ){
             error_log("ERROR: Couldn't execute insert statement for
 		               packet_has_protocol, packet #$count,
-        		       The error reported is '$q_insert->error'.
+        		       The error reported is '$q_insert_p->error'.
                 	   Skipping packet\n\n",3,$logfile);
                 return null;
         }
@@ -179,7 +177,7 @@ function insert_rest( $fields,$count ){
 											# Not a broadcast packet
 	if( $fields['dest_hw_address']!='ff:ff:ff:ff:ff:ff' ){		
 											# Insert the device it was sent to
-		if( check_if_device_exists( $fields['dest_hw_address'] )==null ){
+		if( is_null(check_if_device_exists( $fields['dest_hw_address'] )) ){
 			return null;
 		} else if( check_if_device_exists( $fields['dest_hw_address'])==False ){
 			$q_insert = $conn->prepare("INSERT INTO device(hw_address,wlan_assoc)
@@ -188,10 +186,10 @@ function insert_rest( $fields,$count ){
 								       $fields['ssid']);
 								   
 			if(! $q_insert->execute() ){
-				error_log("ERROR: Couldn't execute insert statement 
-					for device #$fields['dest_hw_address'],
-					The error reported is '$q_insert->error'.
-					Skipping Packet\n\n",3,$logfile);
+				error_log("ERROR: Couldn't execute insert statement
+						   for device #$fields[dest_hw_address].
+						   The error reported is '$q_insert->error'.
+						   Skipping Packet\n\n",3,$logfile);
 				return null;
 			}
 			$d_device_id= $q_insert->insert_id;
@@ -200,7 +198,7 @@ function insert_rest( $fields,$count ){
 		
 	} 
 											# Insert the device it was sent from
-	if( check_if_device_exists( $fields['source_hw_address'] )==null ){
+	if( is_null(check_if_device_exists( $fields['source_hw_address'] )) ){
 		return null;
 	} else if( check_if_device_exists( $fields['source_hw_address'])==False ){
 		$q_insert = $conn->prepare("INSERT INTO device(hw_address,wlan_assoc)
@@ -210,7 +208,7 @@ function insert_rest( $fields,$count ){
 
 		if(! $q_insert->execute() ){
 			error_log("ERROR: Couldn't execute insert statement 
-				for device #$fields['source_hw_address'],
+				for device #$fields[source_hw_address],
 				The error reported is '$q_insert->error'.
 				Skipping Packet\n\n",3,$logfile);
 			return null;
@@ -221,7 +219,7 @@ function insert_rest( $fields,$count ){
 
 	//Insert wlan table rows
 	
-	if( check_if_wlan_exists( $fields['ssid'])==null ){
+	if( is_null(check_if_wlan_exists( $fields['ssid']))){
 		return null;
 	} else if( check_if_wlan_exists( $fields['ssid'])==False ){
 		$q_insert = $conn->prepare("INSERT INTO wlan(ssid)
@@ -230,7 +228,7 @@ function insert_rest( $fields,$count ){
 
 		if(! $q_insert->execute() ){
 			error_log("ERROR: Couldn't execute insert statement 
-				for wlan #$fields['ssid'],
+				for wlan #$fields[ssid],
 			    The error reported is '$q_insert->error'.
 			    Skipping Packet\n\n",3,$logfile);
 			return null;

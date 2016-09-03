@@ -1,7 +1,6 @@
 <?php
 
 include($_SERVER['DOCUMENT_ROOT'].'/data/sidebar.php');
-include($_SERVER['DOCUMENT_ROOT'].'/data/populate_fumctions.php');
 include($_SERVER['DOCUMENT_ROOT'].'/data/parser.php');
 global $parser;
 include($_SERVER['DOCUMENT_ROOT'].'/db_connect.php');
