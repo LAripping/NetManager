@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `captures`.`wlan` (
   `bssid` VARCHAR(45) NULL COMMENT 'wlan.bssid',
   `supported_rates` VARCHAR(45) NULL COMMENT 'wlan_mgt.supported_rates',
   `encryption` VARCHAR(45) NULL COMMENT 'wlan_mgt.rsn.akms.type==2 (wep/psk)\nOR\npacket.protocol=eapol (wpa/wpa2)',
-  `ap_address` VARCHAR(45) NOT NULL,
+  `ap_address` VARCHAR(45) NULL COMMENT 'the hw_address of the device\nif it sends beacons',
   PRIMARY KEY (`ssid`),
   INDEX `fk_wlan_device1_idx` (`ap_address` ASC),
   CONSTRAINT `fk_wlan_device1`
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `captures`.`device` (
   `hw_addr_res` VARCHAR(45) NULL COMMENT 'eth.addr_resolved (show)',
   `ip_address` VARCHAR(45) NULL COMMENT 'ip.src/ip.dst (set through hw-addr)',
   `is_router` TINYINT(1) NULL DEFAULT FALSE COMMENT 'if dest=ff.ff.ff ...\n(mark as router if has sent beacon)',
-  `wlan_assoc` VARCHAR(45) NOT NULL COMMENT 'determine the ssid of the wlan thrpugh the wlan_mgt field',
+  `wlan_assoc` VARCHAR(45) NULL COMMENT 'determine the ssid of the wlan thrpugh the wlan_mgt field',
   PRIMARY KEY (`hw_address`),
   INDEX `fk_device_wlan1_idx` (`wlan_assoc` ASC),
   CONSTRAINT `fk_device_wlan1`
