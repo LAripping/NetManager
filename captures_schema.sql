@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `captures`.`packet` (
   `dst_port` INT NULL COMMENT 'tcp.dstport',
   `tcp_window_size` INT NULL COMMENT 'tcp.window_size',
   `tcp_lost_prev_segment` TINYINT(1) NULL COMMENT 'if exists (tcp.analysis.lost_segment)',
-  `http_response_dt` VARCHAR(45) NULL COMMENT 'exists(tcp.analysis.lost_segment)',
+  `http_response_dt` VARCHAR(45) NULL COMMENT 'http.time',
   PRIMARY KEY (`id`),
   INDEX `fk_packet_device_idx` (`source_hw_address` ASC),
   INDEX `fk_packet_device1_idx` (`dest_hw_address` ASC),
@@ -94,17 +94,6 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `captures`.`protocol`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `captures`.`protocol` ;
-
-CREATE TABLE IF NOT EXISTS `captures`.`protocol` (
-  `name` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`name`))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `captures`.`packet_has_protocol`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `captures`.`packet_has_protocol` ;
@@ -113,16 +102,10 @@ CREATE TABLE IF NOT EXISTS `captures`.`packet_has_protocol` (
   `packet_id` INT NOT NULL,
   `protocol_name` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`packet_id`, `protocol_name`),
-  INDEX `fk_packet_has_protocol_protocol1_idx` (`protocol_name` ASC),
   INDEX `fk_packet_has_protocol_packet1_idx` (`packet_id` ASC),
   CONSTRAINT `fk_packet_has_protocol_packet1`
     FOREIGN KEY (`packet_id`)
     REFERENCES `captures`.`packet` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_packet_has_protocol_protocol1`
-    FOREIGN KEY (`protocol_name`)
-    REFERENCES `captures`.`protocol` (`name`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
