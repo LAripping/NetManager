@@ -43,21 +43,7 @@ function check_if_packet_exists( $time,$count ){
     } else {
 		$ret = False;
 	}
-	
-	//do{
-	//	$res=$q_select->store_result();
-	//	if(! $res ){
-    //    	error_log("ERROR: Couldn't store result 
-    //    		for select statement 
-    //    	    for $ret packet #$count.
-    //    	    The error reported is '$q_select->error'.
-    //   	    Skipping Packet\n\n",3,$logfile);
-    //   		$q_select->close();    
-    //   	return null;
-    //	}
-    //	$q_select->free_result();
-	//}while($conn->next_result());
-	
+		
 	$q_select->close(); 
 	return $ret;
 }
@@ -69,8 +55,9 @@ function insert_geninfo( $fields,$count ){
 			
 	$q_insert = $conn->prepare("INSERT INTO packet(time_captured,
 												   num,
-												   packet_size)
-                                VALUES(?, ?, ?)");
+												   packet_size,
+												   protocols)
+                                VALUES(?, ?, ?, ?)");
                                 
 	if( !$q_insert ){
 	    error_log("ERROR: Couldn't prepare insert statement 
@@ -80,9 +67,10 @@ function insert_geninfo( $fields,$count ){
         return null;
     }                          	
                                 
-    $q_insert->bind_param('sii',$fields['time_captured'],
-                                $fields['num'],
-                                $fields['packet_size']);
+    $q_insert->bind_param('siis',$fields['time_captured'],
+                                 $fields['num'],
+                                 $fields['packet_size'],
+                                 $fields['protocols']);
 
     if(! $q_insert->execute() ){
         error_log("ERROR: Couldn't execute insert statement 
@@ -103,13 +91,13 @@ function insert_packet( $fields,$count,$in_id ){
 	global $conn,$logfile;
 
 	//Some fields need Post processing 
-	if(array_key_exists('_unprotected',$fields)
+	if( array_key_exists('_unprotected',$fields)
        && $fields['type']=='2'){
 	    $fields['uprotected']='1';
     } 
 
     $q_multy = '';
-    $q_update = "UPDATE packet SET %s=%s WHERE id=$in_id;";
+    $q_update = "UPDATE packet SET %s='%s' WHERE id=$in_id;";
 
     $non_packet = array('bssid','supported_rates', 'encryption');
     foreach($fields as $key => $value){
@@ -122,51 +110,20 @@ function insert_packet( $fields,$count,$in_id ){
 
     error_log("About to perform multiquery:\n$q_multy\n",3,$logfile);
     if(! $conn->multi_query($q_multy) ){
-        error_log("ERROR: Couldn't execute multi-query for packet
-            #$count. Skipping Packet\n\n",3,$logfile);
+        error_log("ERROR: Couldn't execute multi-query for packet #$count.
+        		   The error reported is $conn->error.
+        		   Skipping Packet\n\n",3,$logfile);
         return null;
     }
     
     do{
     	$res = $conn->store_result();
     	if($res) $res->free();
-    }while( $conn->next_result() );
+    }while( $conn->more_results()&&$conn->next_result() );
     
 	return True;
 }
 
-
-
-function insert_protocol( $fields,$count,$in_id ){
-	global $conn, $logfile, $protocols;
-	
-	$q_insert_p = $conn->prepare("INSERT INTO packet_has_protocol
-                                  (packet_id,protocol_name)
-                                  VALUES($in_id,?)");
-    if( !$q_insert_p ){
-	    error_log("ERROR: Couldn't prepare insert statement for
-	               packet_has_protocol, packet #$count,
-       		       The error reported is '$conn->error'.
-               	   Skipping packet\n\n",3,$logfile);
-        return null;
-    }
-    
-    foreach($protocols as $i => $name){
-        $q_insert_p->bind_param('s',$name);
-        if(! $q_insert_p->execute() ){
-            error_log("ERROR: Couldn't execute insert statement for
-		               packet_has_protocol, packet #$count,
-        		       The error reported is '$q_insert_p->error'.
-                	   Skipping packet\n\n",3,$logfile);
-            $q_insert_p->close();
-            return null;
-        }
-        error_log("Inserted protocol $name\n",3,$logfile);
-    }
-    $q_insert_p->close();
-
-	return True;
-}
 
 
 function check_if_wlan_exists( $ssid ){
@@ -205,7 +162,7 @@ function check_if_wlan_exists( $ssid ){
 	do{
 		$res=$q_select->store_result();
 		$q_select->free_result();
-	}while($conn->next_result());
+	}while($conn->more_results()&&$conn->next_result());
 	
 	$q_select->close();
     return $ret;
@@ -248,7 +205,7 @@ function check_if_device_exists( $hw_address ){
 	do{
 		$res=$q_select->store_result();
 		$q_select->free_result();
-	}while($conn->next_result());
+	}while($conn->more_results()&&$conn->next_result());
 	
 	$q_select->close();
 	return $ret;
@@ -262,9 +219,11 @@ function insert_rest( $fields,$count ){
 											# Not a broadcast packet
 	if( $fields['dest_hw_address']!='ff:ff:ff:ff:ff:ff' ){		
 											# Insert the device it was sent to
-		if( is_null(check_if_device_exists( $fields['dest_hw_address'] )) ){
+		$d_device_id = check_if_device_exists( $fields['dest_hw_address'] );
+		
+		if( is_null($d_device_id) ){
 			return null;
-		} else if( check_if_device_exists( $fields['dest_hw_address'])==False ){
+		} else if( $d_device_id==False ){
 			$q_insert = $conn->prepare("INSERT INTO device(hw_address,wlan_assoc)
 						                VALUES(?,?)");
 			if( !$q_insert ){
@@ -288,13 +247,14 @@ function insert_rest( $fields,$count ){
 			}
 			$d_device_id= $q_insert->insert_id;
 			$q_insert->close();
-		}
-		
+		} 
 	} 
 											# Insert the device it was sent from
-	if( is_null(check_if_device_exists( $fields['source_hw_address'] )) ){
+	$s_device_id = check_if_device_exists( $fields['source_hw_address'] );
+	
+	if( is_null($s_device_id) ){
 		return null;
-	} else if( check_if_device_exists( $fields['source_hw_address'])==False ){
+	} else if( $s_device_id==False ){
 		$q_insert = $conn->prepare("INSERT INTO device(hw_address,wlan_assoc)
 					                VALUES(?,?)");
 					                
@@ -323,38 +283,42 @@ function insert_rest( $fields,$count ){
 
 	//Insert wlan table rows
 	
-	if( is_null(check_if_wlan_exists( $fields['ssid']))){
-		return null;
-	} else if( check_if_wlan_exists( $fields['ssid'])==False ){
-		$q_insert = $conn->prepare("INSERT INTO wlan(ssid)
-				                    VALUES(?)");
-				                    
-		if( !$q_insert ){			
-			error_log("ERROR: Couldn't prepare insert statement 
-				for wlan #$fields[ssid],
-			    The error reported is '$conn->error'.
-			    Skipping Packet\n\n",3,$logfile);
+	if( array_key_exists('ssid',$fields) && !is_null($fields['ssid']) ){
+		if( is_null(check_if_wlan_exists( $fields['ssid']))){
 			return null;
-		}	                    
-				                    
-		$q_insert->bind_param('s',$fields['ssid']);
+		} else if( check_if_wlan_exists( $fields['ssid'])==False ){
+			$q_insert = $conn->prepare("INSERT INTO wlan(ssid)
+						                VALUES(?)");
+						                
+			if( !$q_insert ){			
+				error_log("ERROR: Couldn't prepare insert statement 
+					for wlan #$fields[ssid],
+					The error reported is '$conn->error'.
+					Skipping Packet\n\n",3,$logfile);
+				return null;
+			}	                    
+						                
+			$q_insert->bind_param('s',$fields['ssid']);
 
-		if(! $q_insert->execute() ){
-			error_log("ERROR: Couldn't execute insert statement 
-				for wlan #$fields[ssid],
-			    The error reported is '$q_insert->error'.
-			    Skipping Packet\n\n",3,$logfile);
-			$q_insert->close();    
-			return null;
+			if(! $q_insert->execute() ){
+				error_log("ERROR: Couldn't execute insert statement 
+					for wlan #$fields[ssid],
+					The error reported is '$q_insert->error'.
+					Skipping Packet\n\n",3,$logfile);
+				$q_insert->close();    
+				return null;
+			}
+			$wlan_id= $q_insert->insert_id;
+			$q_insert->close();
 		}
-		$wlan_id= $q_insert->insert_id;
-		$q_insert->close();
 	}
 			
 	//Update rows with the unprocessed fields 
 				
 	$q_multy = '';	# Prepare query templates
-	$q_update_w  = "UPDATE wlan SET %s=%s WHERE ssid=$wlan_id;";
+	if( array_key_exists('ssid',$fields) && !is_null($fields['ssid']) ){
+		$q_update_w  = "UPDATE wlan SET %s=%s WHERE ssid=$wlan_id;";
+	}
 	$q_update_sd = "UPDATE device SET %s=%s WHERE hw_address=$s_device_id;";
 	$q_update_dd = "UPDATE device SET %s=%s WHERE hw_address=$d_device_id;";
 	
@@ -395,14 +359,16 @@ function insert_rest( $fields,$count ){
     error_log("About to perform multiquery:\n$q_multy\n",3,$logfile);
     if(! $conn->multi_query($q_multy) ){
         error_log("ERROR: Couldn't execute multi-query for remaining fields
-        		   of packet #$count. Skipping Packet\n\n",3,$logfile);
+        		   of packet #$count. 
+        		   The error reported is $conn->error.
+        		   Skipping Packet\n\n",3,$logfile);
         return null;
     }
     
     do{
     	$res = $conn->store_result();
     	if($res) $res->free();
-    }while( $conn->next_result() );
+    }while( $conn->more_results()&&$conn->next_result() );
     
 	return True;					    
 }

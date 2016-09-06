@@ -8,32 +8,14 @@ include($_SERVER['DOCUMENT_ROOT'].'/data/populate_functions.php');
 
 function fill_fields($parser,$element_name,$element_attrs){
 	global $conn;
-    global $count,$logfile;
-    global $protocols, $i, $fields;
+    global $count,$logfile, $fields;
 
 	switch($element_name) {
         case "PACKET":
             //Increase population counter
             $count++;
             error_log("Parsing packet #$count...\n",3,$logfile);
-
-            //Clear packet variables
-            $i = 0;
-            $protocols = array();
             $fields = array(); #keys are the column names
-            break;
-
-        case "PROTO":
-            //Add protocol to packet's array
-            $proto_name = $element_attrs['NAME'];
-            $protocols[$i] = $proto_name;
-            $i++;
-
-            if( $proto_name=='eapol' ){
-                $fields['encryption'] = 'wpa/wpa2';
-            }
-
-            error_log("-Includes protocol: $proto_name (#$i)\n",3,$logfile);
             break;
 
         case "FIELD":
@@ -55,6 +37,11 @@ function fill_fields($parser,$element_name,$element_attrs){
                     $fields['packet_size'] = $element_attrs['SHOW'];
                     error_log("--packet size: $fields[packet_size] bytes\n",3,$logfile);
                     break;
+                    
+                case "frame.protocols":
+                	$fields['protocols'] = $element_attrs['SHOW'];
+                	error_log("--contains protocols: $fields[protocols]\n",3,$logfile);
+                	break;    
 
                 //WLAN fields
                 case "wlan_radio.signal_dbm":
@@ -159,12 +146,12 @@ function fill_fields($parser,$element_name,$element_attrs){
                 //ETHERNET fields
                 case "eth.src":
                     $fields['source_hw_address'] = $element_attrs['SHOW'];
-                    error_log("--source ethernet address: $fields['source_hw_address']\n",3,$logfile);
+                    error_log("--source ethernet address: $fields[source_hw_address]\n",3,$logfile);
                     break;
                     
                 case "eth.dst":
                     $fields['dest_hw_address'] = $element_attrs['SHOW'];
-                    error_log("--destination ethernet address: $fields['dest_hw_address']\n",3,$logfile);
+                    error_log("--destination ethernet address: $fields[dest_hw_address]\n",3,$logfile);
                     break;
                     
                 case "eth.src_resolved":
@@ -208,16 +195,13 @@ function start($parser,$element_name,$element_attrs) {
 // Function to use at the end of an element
 function stop($parser,$element_name) {
     global $conn;
-    global $content,$count,$logfile;
-    global $protocols, $fields;
+    global $content,$count,$logfile, $fields;
 
     switch($element_name){
         case "PACKET":
             //Packet Summary
             $_fields = var_export($fields,true);
-            $_protos = var_export($protocols,true);
             error_log("Summary of packet #$count:\n",3,$logfile);
-            error_log("Protocols $_protos\n",3,$logfile);
             error_log("Fields $_fields\n",3,$logfile);
 
 			///////////////////////////////////     
@@ -225,8 +209,13 @@ function stop($parser,$element_name) {
        		//Check if packet is already in DB
 			$ret = check_if_packet_exists($fields['time_captured'],$count);
 			if( is_null($ret) || $ret==True)	break;
-
-
+          
+            
+            //Insert the rows in the remaining tables
+            $ret == insert_rest($fields,$count);
+            if(is_null($ret)) break;
+            
+            	
             //Insert packet (geninfo) fields only, then unset them
 			$ret = insert_geninfo($fields,$count);
 			if( is_null($ret))	break;
@@ -234,24 +223,13 @@ function stop($parser,$element_name) {
 		    unset($fields['time_captured']);
 		    unset($fields['num']);
 		    unset($fields['packet_size']);
+		    unset($fields['protocols']);
 			
 
             //Update the packet row with the remaining fields
             $ret = insert_packet($fields,$count,$in_id);
 			if(is_null($ret))	break;
-
-
-
-            //Insert the packet's protocol-rows
-            $ret = insert_protocol($fields, $count, $in_id);
-            if(is_null($ret)) break;
-            
-            
-            //Insert the rows in the remaining tables
-            $ret == insert_rest($fields,$count);
-            if(is_null($ret)) break;
-            
-            	
+			
 			///////////////////////////////////         
 
             //Mark the end of packet processing in log

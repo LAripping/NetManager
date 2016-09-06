@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS `captures`.`packet` (
   `time_captured` VARCHAR(45) NOT NULL COMMENT 'timestamp',
   `num` INT NULL COMMENT 'num',
   `packet_size` INT NULL COMMENT 'frame.len',
+  `protocols` VARCHAR(45) NULL COMMENT 'frame.protocols',
   `signal_strength` INT NULL COMMENT 'wlan_radio.signal_dbm',
   `rate` INT NULL COMMENT 'wlan_radio.data_rate',
   `channel` INT(11) NULL COMMENT 'wlan_radio.channel',
@@ -88,24 +89,6 @@ CREATE TABLE IF NOT EXISTS `captures`.`packet` (
   CONSTRAINT `fk_packet_wlan1`
     FOREIGN KEY (`ssid`)
     REFERENCES `captures`.`wlan` (`ssid`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `captures`.`packet_has_protocol`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `captures`.`packet_has_protocol` ;
-
-CREATE TABLE IF NOT EXISTS `captures`.`packet_has_protocol` (
-  `packet_id` INT NOT NULL,
-  `protocol_name` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`packet_id`, `protocol_name`),
-  INDEX `fk_packet_has_protocol_packet1_idx` (`packet_id` ASC),
-  CONSTRAINT `fk_packet_has_protocol_packet1`
-    FOREIGN KEY (`packet_id`)
-    REFERENCES `captures`.`packet` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
