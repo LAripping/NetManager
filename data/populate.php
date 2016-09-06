@@ -15,7 +15,7 @@ file_put_contents($logfile,'');
 
 
 // Open XML capture file
-$filename = $_SERVER['DOCUMENT_ROOT'].'/afull.xml';
+$filename = $_SERVER['DOCUMENT_ROOT'].'/c.xml';
 if(! $fp=fopen($filename,"r") ){
     error_log("Openning file failed\n",3,$logfile);
     exit;

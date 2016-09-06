@@ -2,3 +2,5 @@
 *.log
 *.bak
 *.xml
+commit_message.txt
+quick_queries.sql

@@ -14,12 +14,22 @@ function check_if_packet_exists( $time,$count ){
 	$q_select = $conn->prepare("SELECT id
                                 FROM packet
                                 WHERE time_captured = binary ?");
+    
+    if( !$q_select ){
+    	error_log("ERROR: Couldn't prepare select statement 
+            for packet #$count.
+            The error reported is '$conn->error'.
+            Skipping Packet\n\n",3,$logfile);
+        return null;
+    }
+    
     $q_select->bind_param('s',$time);
     if(! $q_select->execute() ){
         error_log("ERROR: Couldn't execute select statement 
             for packet #$count.
             The error reported is '$q_select->error'.
             Skipping Packet\n\n",3,$logfile);
+        $q_insert->close();    
         return null;
     }
     
@@ -28,11 +38,28 @@ function check_if_packet_exists( $time,$count ){
     
 	if($found_id){
         error_log("Packet already in DB (id=$found_id)
-            Skipping\n\n",3,$logfile);
-        return True;
+            Skipping\n\n",3,$logfile);   
+        $ret = True;
     } else {
-		return False;
+		$ret = False;
 	}
+	
+	//do{
+	//	$res=$q_select->store_result();
+	//	if(! $res ){
+    //    	error_log("ERROR: Couldn't store result 
+    //    		for select statement 
+    //    	    for $ret packet #$count.
+    //    	    The error reported is '$q_select->error'.
+    //   	    Skipping Packet\n\n",3,$logfile);
+    //   		$q_select->close();    
+    //   	return null;
+    //	}
+    //	$q_select->free_result();
+	//}while($conn->next_result());
+	
+	$q_select->close(); 
+	return $ret;
 }
 
 
@@ -44,6 +71,15 @@ function insert_geninfo( $fields,$count ){
 												   num,
 												   packet_size)
                                 VALUES(?, ?, ?)");
+                                
+	if( !$q_insert ){
+	    error_log("ERROR: Couldn't prepare insert statement 
+        		   for packet #$count,
+            	   The error reported is '$conn->error'.
+            	   Skipping Packet\n\n",3,$logfile);
+        return null;
+    }                          	
+                                
     $q_insert->bind_param('sii',$fields['time_captured'],
                                 $fields['num'],
                                 $fields['packet_size']);
@@ -53,6 +89,7 @@ function insert_geninfo( $fields,$count ){
         	for packet #$count,
             The error reported is '$q_insert->error'.
             Skipping Packet\n\n",3,$logfile);
+        $q_insert->close();    
         return null;
     }
     $in_id= $q_insert->insert_id;
@@ -65,6 +102,7 @@ function insert_geninfo( $fields,$count ){
 function insert_packet( $fields,$count,$in_id ){
 	global $conn,$logfile;
 
+	//Some fields need Post processing 
 	if(array_key_exists('_unprotected',$fields)
        && $fields['type']=='2'){
 	    $fields['uprotected']='1';
@@ -88,6 +126,12 @@ function insert_packet( $fields,$count,$in_id ){
             #$count. Skipping Packet\n\n",3,$logfile);
         return null;
     }
+    
+    do{
+    	$res = $conn->store_result();
+    	if($res) $res->free();
+    }while( $conn->next_result() );
+    
 	return True;
 }
 
@@ -99,6 +143,14 @@ function insert_protocol( $fields,$count,$in_id ){
 	$q_insert_p = $conn->prepare("INSERT INTO packet_has_protocol
                                   (packet_id,protocol_name)
                                   VALUES($in_id,?)");
+    if( !$q_insert_p ){
+	    error_log("ERROR: Couldn't prepare insert statement for
+	               packet_has_protocol, packet #$count,
+       		       The error reported is '$conn->error'.
+               	   Skipping packet\n\n",3,$logfile);
+        return null;
+    }
+    
     foreach($protocols as $i => $name){
         $q_insert_p->bind_param('s',$name);
         if(! $q_insert_p->execute() ){
@@ -106,7 +158,8 @@ function insert_protocol( $fields,$count,$in_id ){
 		               packet_has_protocol, packet #$count,
         		       The error reported is '$q_insert_p->error'.
                 	   Skipping packet\n\n",3,$logfile);
-                return null;
+            $q_insert_p->close();
+            return null;
         }
         error_log("Inserted protocol $name\n",3,$logfile);
     }
@@ -122,24 +175,40 @@ function check_if_wlan_exists( $ssid ){
 	$q_select = $conn->prepare("SELECT ssid
                                 FROM wlan
                                 WHERE ssid = binary ?");
+	if( !$q_select ){
+        error_log("ERROR: Couldn't prepare select 
+        		   statement for wlan #$ssid.
+            	   The error reported is '$conn->error'.
+                   Skipping Packet\n\n",3,$logfile);
+        return null;
+    }                            
+                                
     $q_select->bind_param('s',$ssid);
     if(! $q_select->execute() ){
         error_log("ERROR: Couldn't execute select 
-        	statement for wlan #$ssid.
-            The error reported is '$q_select->error'.
-            Skipping Packet\n\n",3,$logfile);
+        		   statement for wlan #$ssid.
+            	   The error reported is '$q_select->error'.
+                   Skipping Packet\n\n",3,$logfile);
+        $q_select->close();           
         return null;
     }
     $q_select->bind_result($found_ssid);
     $q_select->fetch();
-	$q_select->close();
     
 	if($found_ssid){
         error_log("Wlan already in DB. Skipping\n\n",3,$logfile);
-        return True;
+		$ret = True;
     } else {
-		return False;
+		$ret = False;
 	}
+	
+	do{
+		$res=$q_select->store_result();
+		$q_select->free_result();
+	}while($conn->next_result());
+	
+	$q_select->close();
+    return $ret;
 }
 
 
@@ -149,24 +218,40 @@ function check_if_device_exists( $hw_address ){
 	$q_select = $conn->prepare("SELECT hw_address
                                 FROM device
                                 WHERE hw_address = binary ?");
+	if( !$q_select ){
+        error_log("ERROR: Couldn't prepare select 
+        		   statement for device #$hw_address.
+            	   The error reported is '$conn->error'.
+                   Skipping Packet\n\n",3,$logfile);
+        return null;
+    }                                
+                                
     $q_select->bind_param('s',$hw_address);
     if(! $q_select->execute() ){
         error_log("ERROR: Couldn't execute select 
         	statement for device #$hw_address.
             The error reported is '$q_select->error'.
             Skipping Packet\n\n",3,$logfile);
+        $q_select->close();
         return null;
     }
     $q_select->bind_result($found_hw_address);
     $q_select->fetch();
-	$q_select->close();
     
 	if($found_hw_address){
         error_log("Device already in DB. Skipping\n\n",3,$logfile);
-        return True;
+        $ret = True;
     } else {
-		return False;
+		$ret = False;
 	}
+	
+	do{
+		$res=$q_select->store_result();
+		$q_select->free_result();
+	}while($conn->next_result());
+	
+	$q_select->close();
+	return $ret;
 }
 
 
@@ -182,6 +267,14 @@ function insert_rest( $fields,$count ){
 		} else if( check_if_device_exists( $fields['dest_hw_address'])==False ){
 			$q_insert = $conn->prepare("INSERT INTO device(hw_address,wlan_assoc)
 						                VALUES(?,?)");
+			if( !$q_insert ){
+				error_log("ERROR: Couldn't prepare insert statement
+						   for device #$fields[dest_hw_address].
+						   The error reported is '$conn->error'.
+						   Skipping Packet\n\n",3,$logfile);
+				return null;
+			}						                
+						                
 			$q_insert->bind_param('ss',$fields['dest_hw_address'],
 								       $fields['ssid']);
 								   
@@ -190,6 +283,7 @@ function insert_rest( $fields,$count ){
 						   for device #$fields[dest_hw_address].
 						   The error reported is '$q_insert->error'.
 						   Skipping Packet\n\n",3,$logfile);
+   			    $q_insert->close();
 				return null;
 			}
 			$d_device_id= $q_insert->insert_id;
@@ -203,6 +297,15 @@ function insert_rest( $fields,$count ){
 	} else if( check_if_device_exists( $fields['source_hw_address'])==False ){
 		$q_insert = $conn->prepare("INSERT INTO device(hw_address,wlan_assoc)
 					                VALUES(?,?)");
+					                
+		if( !$q_insert ){
+			error_log("ERROR: Couldn't prepare insert statement 
+				for device #$fields[source_hw_address],
+				The error reported is '$conn->error'.
+				Skipping Packet\n\n",3,$logfile);
+			return null;
+		}					                
+					                
 		$q_insert->bind_param('ss',$fields['source_hw_address'],
 								   $fields['ssid']);
 
@@ -211,6 +314,7 @@ function insert_rest( $fields,$count ){
 				for device #$fields[source_hw_address],
 				The error reported is '$q_insert->error'.
 				Skipping Packet\n\n",3,$logfile);
+			$q_insert->close();
 			return null;
 		}
 		$s_device_id= $q_insert->insert_id;
@@ -224,6 +328,15 @@ function insert_rest( $fields,$count ){
 	} else if( check_if_wlan_exists( $fields['ssid'])==False ){
 		$q_insert = $conn->prepare("INSERT INTO wlan(ssid)
 				                    VALUES(?)");
+				                    
+		if( !$q_insert ){			
+			error_log("ERROR: Couldn't prepare insert statement 
+				for wlan #$fields[ssid],
+			    The error reported is '$conn->error'.
+			    Skipping Packet\n\n",3,$logfile);
+			return null;
+		}	                    
+				                    
 		$q_insert->bind_param('s',$fields['ssid']);
 
 		if(! $q_insert->execute() ){
@@ -231,6 +344,7 @@ function insert_rest( $fields,$count ){
 				for wlan #$fields[ssid],
 			    The error reported is '$q_insert->error'.
 			    Skipping Packet\n\n",3,$logfile);
+			$q_insert->close();    
 			return null;
 		}
 		$wlan_id= $q_insert->insert_id;
@@ -284,6 +398,12 @@ function insert_rest( $fields,$count ){
         		   of packet #$count. Skipping Packet\n\n",3,$logfile);
         return null;
     }
+    
+    do{
+    	$res = $conn->store_result();
+    	if($res) $res->free();
+    }while( $conn->next_result() );
+    
 	return True;					    
 }
 

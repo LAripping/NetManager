@@ -157,6 +157,16 @@ function fill_fields($parser,$element_name,$element_attrs){
                     break;
 
                 //ETHERNET fields
+                case "eth.src":
+                    $fields['source_hw_address'] = $element_attrs['SHOW'];
+                    error_log("--source ethernet address: $fields['source_hw_address']\n",3,$logfile);
+                    break;
+                    
+                case "eth.dst":
+                    $fields['dest_hw_address'] = $element_attrs['SHOW'];
+                    error_log("--destination ethernet address: $fields['dest_hw_address']\n",3,$logfile);
+                    break;
+                    
                 case "eth.src_resolved":
                     $fields['DEVICE_SRC__hw_addr_res'] = $element_attrs['SHOW'];
                     error_log("--source ethernet address resolved: $fields[DEVICE_SRC__hw_addr_res]\n",3,$logfile);
@@ -210,6 +220,7 @@ function stop($parser,$element_name) {
             error_log("Protocols $_protos\n",3,$logfile);
             error_log("Fields $_fields\n",3,$logfile);
 
+			///////////////////////////////////     
      
        		//Check if packet is already in DB
 			$ret = check_if_packet_exists($fields['time_captured'],$count);
@@ -237,17 +248,11 @@ function stop($parser,$element_name) {
             
             
             //Insert the rows in the remaining tables
-            if( array_key_exists('ssid',$fields) ){
-            	$ret == insert_rest($fields,$count);
-            	if(is_null($ret)) break;
-            }
-            	
+            $ret == insert_rest($fields,$count);
+            if(is_null($ret)) break;
             
-           
-
-
-
-
+            	
+			///////////////////////////////////         
 
             //Mark the end of packet processing in log
             error_log("\n\n",3,$logfile);
