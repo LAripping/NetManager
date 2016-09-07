@@ -114,18 +114,20 @@ function insert_packet( $fields,$count,$in_id ){
         $q_multy .= sprintf($q_update, $key,$value);
     }
 
-    error_log("*About to perform multiquery:\n$q_multy\n",3,$logfile);
-    if(! $conn->multi_query($q_multy) ){
-        error_log("ERROR: Couldn't execute multi-query for packet #$count.
-        		   The error reported is $conn->error.
-        		   Skipping Packet\n\n",3,$logfile);
-        return null;
-    }
-    
-    do{
-    	$res = $conn->store_result();
-    	if($res) $res->free();
-    }while( $conn->more_results()&&$conn->next_result() );
+    if( $q_multy ){
+		error_log("*About to perform multiquery:\n$q_multy\n",3,$logfile);
+		if(! $conn->multi_query($q_multy) ){
+		    error_log("ERROR: Couldn't execute multi-query for packet #$count.
+		    		   The error reported is $conn->error.
+		    		   Skipping Packet\n\n",3,$logfile);
+		    return null;
+		}
+		
+		do{
+			$res = $conn->store_result();
+			if($res) $res->free();
+		}while( $conn->more_results()&&$conn->next_result() );
+	}
     
 	return True;
 }
@@ -241,7 +243,7 @@ function insert_rest( $fields,$count ){
 	
 	//Insert device table rows
 											# Not a broadcast packet
-	if( !is_null($fields['dest_hw_address']) 
+	if( !is_null($fields['dest_hw_address'])  
 	&& 	$fields['dest_hw_address']!='ff:ff:ff:ff:ff:ff' ){		
 											# Insert the device it was sent to
 		$d_device_id = check_if_device_exists( $fields['dest_hw_address'] );
@@ -274,7 +276,7 @@ function insert_rest( $fields,$count ){
 		} 
 	}
 	
-	if( !is_null($fields['source_hw_address']){  
+	if( !is_null($fields['source_hw_address']) ){  
 											# Insert the device it was sent from
 		$s_device_id = check_if_device_exists( $fields['source_hw_address'] );
 		if( is_null($s_device_id) ){
@@ -387,20 +389,22 @@ function insert_rest( $fields,$count ){
   			$q_multy .= sprintf($q_update_w, 'bssid',
   								$fields['bssid']);
   	}											    
-    					    
-    error_log("*About to perform multiquery:\n$q_multy\n",3,$logfile);
-    if(! $conn->multi_query($q_multy) ){
-        error_log("ERROR: Couldn't execute multi-query for remaining fields
-        		   of packet #$count. 
-        		   The error reported is $conn->error.
-        		   Skipping Packet\n\n",3,$logfile);
-        return null;
+    if(	$q_multy ){				    
+		error_log("*About to perform multiquery:\n$q_multy\n",3,$logfile);
+		if(! $conn->multi_query($q_multy) ){
+		    error_log("ERROR: Couldn't execute multi-query for remaining fields
+		    		   of packet #$count. 
+		    		   The error reported is $conn->error.
+		    		   Skipping Packet\n\n",3,$logfile);
+		    return null;
+		}
+		
+		do{
+			$res = $conn->store_result();
+			if($res) $res->free();
+		}while( $conn->more_results()&&$conn->next_result() );
+		
     }
-    
-    do{
-    	$res = $conn->store_result();
-    	if($res) $res->free();
-    }while( $conn->more_results()&&$conn->next_result() );
     
 	return True;					    
 }
