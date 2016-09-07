@@ -241,14 +241,15 @@ function insert_rest( $fields,$count ){
 	
 	//Insert device table rows
 											# Not a broadcast packet
-	if( $fields['dest_hw_address']!='ff:ff:ff:ff:ff:ff' ){		
+	if( !is_null($fields['dest_hw_address']) 
+	&& 	$fields['dest_hw_address']!='ff:ff:ff:ff:ff:ff' ){		
 											# Insert the device it was sent to
 		$d_device_id = check_if_device_exists( $fields['dest_hw_address'] );
 		if( is_null($d_device_id) ){
 			return null;
 		} else if( $d_device_id==False ){
-			$q_insert = $conn->prepare("INSERT INTO device(hw_address,wlan_assoc)
-						                VALUES(?,?)");
+			$q_insert = $conn->prepare("INSERT INTO device(hw_address)
+						                VALUES(?)");
 			if( !$q_insert ){
 				error_log("ERROR: Couldn't prepare insert statement
 						   for device #$fields[dest_hw_address].
@@ -257,8 +258,7 @@ function insert_rest( $fields,$count ){
 				return null;
 			}						                
 						                
-			$q_insert->bind_param('ss',$fields['dest_hw_address'],
-								       $fields['ssid']);
+			$q_insert->bind_param('s',$fields['dest_hw_address']);
     		error_log("*About to insert dest device :\nINSERT INTO device..\n",
     														3,$logfile);								   
 			if(! $q_insert->execute() ){
@@ -272,37 +272,39 @@ function insert_rest( $fields,$count ){
 			$d_device_id= $q_insert->insert_id;
 			$q_insert->close();
 		} 
-	} 
+	}
+	
+	if( !is_null($fields['source_hw_address']){  
 											# Insert the device it was sent from
-	$s_device_id = check_if_device_exists( $fields['source_hw_address'] );
-	if( is_null($s_device_id) ){
-		return null;
-	} else if( $s_device_id==False ){
-		$q_insert = $conn->prepare("INSERT INTO device(hw_address,wlan_assoc)
-					                VALUES(?,?)");
-					                
-		if( !$q_insert ){
-			error_log("ERROR: Couldn't prepare insert statement 
-				for device #$fields[source_hw_address],
-				The error reported is '$conn->error'.
-				Skipping Packet\n\n",3,$logfile);
+		$s_device_id = check_if_device_exists( $fields['source_hw_address'] );
+		if( is_null($s_device_id) ){
 			return null;
-		}					                
-					                
-		$q_insert->bind_param('ss',$fields['source_hw_address'],
-								   $fields['ssid']);
-    	error_log("*About to insert src device :\nINSERT INTO device..\n",
-    														3,$logfile);
-		if(! $q_insert->execute() ){
-			error_log("ERROR: Couldn't execute insert statement 
-				for device #$fields[source_hw_address],
-				The error reported is '$q_insert->error'.
-				Skipping Packet\n\n",3,$logfile);
+		} else if( $s_device_id==False ){
+			$q_insert = $conn->prepare("INSERT INTO device(hw_address)
+							            VALUES(?)");
+							            
+			if( !$q_insert ){
+				error_log("ERROR: Couldn't prepare insert statement 
+					for device #$fields[source_hw_address],
+					The error reported is '$conn->error'.
+					Skipping Packet\n\n",3,$logfile);
+				return null;
+			}					                
+							            
+			$q_insert->bind_param('s',$fields['source_hw_address']);
+			error_log("*About to insert src device :\nINSERT INTO device..\n",
+																3,$logfile);
+			if(! $q_insert->execute() ){
+				error_log("ERROR: Couldn't execute insert statement 
+					for device #$fields[source_hw_address],
+					The error reported is '$q_insert->error'.
+					Skipping Packet\n\n",3,$logfile);
+				$q_insert->close();
+				return null;
+			}
+			$s_device_id= $q_insert->insert_id;
 			$q_insert->close();
-			return null;
 		}
-		$s_device_id= $q_insert->insert_id;
-		$q_insert->close();
 	}
 
 	//Insert wlan table rows
@@ -341,11 +343,16 @@ function insert_rest( $fields,$count ){
 	//Update rows with the unprocessed fields 
 				
 	$q_multy = '';	# Prepare query templates
-	if( array_key_exists('ssid',$fields) && !is_null($fields['ssid']) ){
-		$q_update_w  = "UPDATE wlan SET %s='%s' WHERE ssid='$wlan_id';";
-	}
 	$q_update_sd = "UPDATE device SET %s='%s' WHERE hw_address='$s_device_id';";
 	$q_update_dd = "UPDATE device SET %s='%s' WHERE hw_address='$d_device_id';";
+	
+	if( array_key_exists('ssid',$fields) && !is_null($fields['ssid']) ){
+		$q_update_w  = "UPDATE wlan SET %s='%s' WHERE ssid='$wlan_id';";
+			$q_multy .= sprintf($q_update_sd, 'wlan_assoc', $fields['ssid']);
+		if( $fields['dest_hw_address']!='ff:ff:ff:ff:ff:ff' ){
+			$q_multy .= sprintf($q_update_dd, 'wlan_assoc', $fields['ssid']);
+		}
+	}
 	
     if( array_key_exists('DEVICE_SRC__hw_addr_res',$fields) )
     	$q_multy .= sprintf($q_update_sd, 'hw_addr_res', 

@@ -2,6 +2,7 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
+DROP SCHEMA IF EXISTS `captures` ;
 CREATE SCHEMA IF NOT EXISTS `captures` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ;
 USE `captures` ;
 
@@ -21,8 +22,8 @@ CREATE TABLE IF NOT EXISTS `captures`.`wlan` (
   CONSTRAINT `fk_wlan_device1`
     FOREIGN KEY (`ap_address`)
     REFERENCES `captures`.`device` (`hw_address`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE SET NULL
+    ON UPDATE SET NULL)
 ENGINE = InnoDB;
 
 
@@ -42,8 +43,8 @@ CREATE TABLE IF NOT EXISTS `captures`.`device` (
   CONSTRAINT `fk_device_wlan1`
     FOREIGN KEY (`wlan_assoc`)
     REFERENCES `captures`.`wlan` (`ssid`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE SET NULL
+    ON UPDATE SET NULL)
 ENGINE = InnoDB;
 
 
@@ -79,18 +80,18 @@ CREATE TABLE IF NOT EXISTS `captures`.`packet` (
   CONSTRAINT `fk_packet_device`
     FOREIGN KEY (`source_hw_address`)
     REFERENCES `captures`.`device` (`hw_address`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE SET NULL
+    ON UPDATE SET NULL,
   CONSTRAINT `fk_packet_device1`
     FOREIGN KEY (`dest_hw_address`)
     REFERENCES `captures`.`device` (`hw_address`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE SET NULL
+    ON UPDATE SET NULL,
   CONSTRAINT `fk_packet_wlan1`
     FOREIGN KEY (`ssid`)
     REFERENCES `captures`.`wlan` (`ssid`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE SET NULL
+    ON UPDATE SET NULL)
 ENGINE = InnoDB;
 
 
