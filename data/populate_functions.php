@@ -7,13 +7,18 @@ global $conn;
 
 
 
-
+/*
+ * Returns 
+ *	-null if something goes wrong
+ *	-True if packet is found
+ *	-False if packet is not found in DB
+ */ 
 function check_if_packet_exists( $time,$count ){
 	global $conn,$logfile;
 
 	$q_select = $conn->prepare("SELECT id
                                 FROM packet
-                                WHERE time_captured = binary ?");
+                                WHERE time_captured = ?");
     
     if( !$q_select ){
     	error_log("ERROR: Couldn't prepare select statement 
@@ -29,7 +34,7 @@ function check_if_packet_exists( $time,$count ){
             for packet #$count.
             The error reported is '$q_select->error'.
             Skipping Packet\n\n",3,$logfile);
-        $q_insert->close();    
+        $q_select->close();    
         return null;
     }
     
@@ -71,7 +76,8 @@ function insert_geninfo( $fields,$count ){
                                  $fields['num'],
                                  $fields['packet_size'],
                                  $fields['protocols']);
-
+    error_log("*About to insert packet with geninfo:\nINSERT INTO packet..\n",
+    														3,$logfile);
     if(! $q_insert->execute() ){
         error_log("ERROR: Couldn't execute insert statement 
         	for packet #$count,
@@ -108,7 +114,7 @@ function insert_packet( $fields,$count,$in_id ){
         $q_multy .= sprintf($q_update, $key,$value);
     }
 
-    error_log("About to perform multiquery:\n$q_multy\n",3,$logfile);
+    error_log("*About to perform multiquery:\n$q_multy\n",3,$logfile);
     if(! $conn->multi_query($q_multy) ){
         error_log("ERROR: Couldn't execute multi-query for packet #$count.
         		   The error reported is $conn->error.
@@ -126,12 +132,19 @@ function insert_packet( $fields,$count,$in_id ){
 
 
 
+
+/*
+ * Returns 
+ *	-null if something goes wrong
+ *	-True if wlan is found
+ *	-False if wlan is not found in DB
+ */
 function check_if_wlan_exists( $ssid ){
 	global $conn,$logfile;
 
 	$q_select = $conn->prepare("SELECT ssid
                                 FROM wlan
-                                WHERE ssid = binary ?");
+                                WHERE ssid = ?");
 	if( !$q_select ){
         error_log("ERROR: Couldn't prepare select 
         		   statement for wlan #$ssid.
@@ -153,7 +166,7 @@ function check_if_wlan_exists( $ssid ){
     $q_select->fetch();
     
 	if($found_ssid){
-        error_log("Wlan already in DB. Skipping\n\n",3,$logfile);
+        error_log("Wlan already in DB. Skipping\n",3,$logfile);
 		$ret = True;
     } else {
 		$ret = False;
@@ -169,12 +182,21 @@ function check_if_wlan_exists( $ssid ){
 }
 
 
+
+
+
+/*
+ * Returns 
+ * 	-null if something goes wrong
+ *	-False if packet is not found in DB
+ *	-the 'hw_address' attribute of the rown found
+ */
 function check_if_device_exists( $hw_address ){
 	global $conn,$logfile;
 
 	$q_select = $conn->prepare("SELECT hw_address
                                 FROM device
-                                WHERE hw_address = binary ?");
+                                WHERE hw_address = ?");
 	if( !$q_select ){
         error_log("ERROR: Couldn't prepare select 
         		   statement for device #$hw_address.
@@ -195,9 +217,10 @@ function check_if_device_exists( $hw_address ){
     $q_select->bind_result($found_hw_address);
     $q_select->fetch();
     
+    
 	if($found_hw_address){
-        error_log("Device already in DB. Skipping\n\n",3,$logfile);
-        $ret = True;
+        error_log("Device already in DB. Skipping\n",3,$logfile);
+        $ret = $found_hw_address;
     } else {
 		$ret = False;
 	}
@@ -208,6 +231,7 @@ function check_if_device_exists( $hw_address ){
 	}while($conn->more_results()&&$conn->next_result());
 	
 	$q_select->close();
+	
 	return $ret;
 }
 
@@ -220,7 +244,6 @@ function insert_rest( $fields,$count ){
 	if( $fields['dest_hw_address']!='ff:ff:ff:ff:ff:ff' ){		
 											# Insert the device it was sent to
 		$d_device_id = check_if_device_exists( $fields['dest_hw_address'] );
-		
 		if( is_null($d_device_id) ){
 			return null;
 		} else if( $d_device_id==False ){
@@ -236,7 +259,8 @@ function insert_rest( $fields,$count ){
 						                
 			$q_insert->bind_param('ss',$fields['dest_hw_address'],
 								       $fields['ssid']);
-								   
+    		error_log("*About to insert dest device :\nINSERT INTO device..\n",
+    														3,$logfile);								   
 			if(! $q_insert->execute() ){
 				error_log("ERROR: Couldn't execute insert statement
 						   for device #$fields[dest_hw_address].
@@ -251,7 +275,6 @@ function insert_rest( $fields,$count ){
 	} 
 											# Insert the device it was sent from
 	$s_device_id = check_if_device_exists( $fields['source_hw_address'] );
-	
 	if( is_null($s_device_id) ){
 		return null;
 	} else if( $s_device_id==False ){
@@ -268,7 +291,8 @@ function insert_rest( $fields,$count ){
 					                
 		$q_insert->bind_param('ss',$fields['source_hw_address'],
 								   $fields['ssid']);
-
+    	error_log("*About to insert src device :\nINSERT INTO device..\n",
+    														3,$logfile);
 		if(! $q_insert->execute() ){
 			error_log("ERROR: Couldn't execute insert statement 
 				for device #$fields[source_hw_address],
@@ -299,7 +323,8 @@ function insert_rest( $fields,$count ){
 			}	                    
 						                
 			$q_insert->bind_param('s',$fields['ssid']);
-
+    		error_log("*About to insert wlan :\nINSERT INTO wlan..\n",
+    														3,$logfile);
 			if(! $q_insert->execute() ){
 				error_log("ERROR: Couldn't execute insert statement 
 					for wlan #$fields[ssid],
@@ -317,10 +342,10 @@ function insert_rest( $fields,$count ){
 				
 	$q_multy = '';	# Prepare query templates
 	if( array_key_exists('ssid',$fields) && !is_null($fields['ssid']) ){
-		$q_update_w  = "UPDATE wlan SET %s=%s WHERE ssid=$wlan_id;";
+		$q_update_w  = "UPDATE wlan SET %s='%s' WHERE ssid='$wlan_id';";
 	}
-	$q_update_sd = "UPDATE device SET %s=%s WHERE hw_address=$s_device_id;";
-	$q_update_dd = "UPDATE device SET %s=%s WHERE hw_address=$d_device_id;";
+	$q_update_sd = "UPDATE device SET %s='%s' WHERE hw_address='$s_device_id';";
+	$q_update_dd = "UPDATE device SET %s='%s' WHERE hw_address='$d_device_id';";
 	
     if( array_key_exists('DEVICE_SRC__hw_addr_res',$fields) )
     	$q_multy .= sprintf($q_update_sd, 'hw_addr_res', 
@@ -356,7 +381,7 @@ function insert_rest( $fields,$count ){
   								$fields['bssid']);
   	}											    
     					    
-    error_log("About to perform multiquery:\n$q_multy\n",3,$logfile);
+    error_log("*About to perform multiquery:\n$q_multy\n",3,$logfile);
     if(! $conn->multi_query($q_multy) ){
         error_log("ERROR: Couldn't execute multi-query for remaining fields
         		   of packet #$count. 

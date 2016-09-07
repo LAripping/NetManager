@@ -1,21 +1,31 @@
 <?php
 
-include($_SERVER['DOCUMENT_ROOT'].'/data/sidebar.php');
+if( isset($_POST['submit']) ){
+	$filename = $_SERVER['DOCUMENT_ROOT'].'/'.$_POST['file'];
+} else {
+	include($_SERVER['DOCUMENT_ROOT'].'/data/sidebar.php');
+	$content = "<h3>Oops!</h3>
+				</br>
+				<p>You shouldn't be here! Click in one of the options from
+				 the sidebar to browse the corresponding page</p>";
+	include($_SERVER['DOCUMENT_ROOT'].'/theme/base.php');
+	exit;
+}
+
+
 include($_SERVER['DOCUMENT_ROOT'].'/data/parser.php');
 global $parser;
 include($_SERVER['DOCUMENT_ROOT'].'/db_connect.php');
 global $conn;
+
 
 //Clear the log
 $logfile = $_SERVER['DOCUMENT_ROOT'].'/nms.log';
 file_put_contents($logfile,'');
 
 
-
-
-
 // Open XML capture file
-$filename = $_SERVER['DOCUMENT_ROOT'].'/c.xml';
+print $_POST['file'];
 if(! $fp=fopen($filename,"r") ){
     error_log("Openning file failed\n",3,$logfile);
     exit;
@@ -39,14 +49,13 @@ while ($data=fread($fp,4096)) {
 }
 
 
-
-
 // Free the XML parser and close DB connection
 xml_parser_free($parser);
 $conn->close();
 
-$content = "";
+header("Location: http://localhost/data/log.php");
+die();
 
-include($_SERVER['DOCUMENT_ROOT'].'/theme/base.php');
+
 
 ?>
