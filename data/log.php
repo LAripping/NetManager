@@ -7,9 +7,7 @@ $content = '
     </br>
     </br>
    	<iframe id="logframe" style="width:inherit; height:490px; border:none;" src="/nms.log"></iframe>
-    
-    <script>document.getElementById("logframe").contentWindow.location.reload();</script>
-    
+        
     </br>
     ';
 

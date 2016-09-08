@@ -19,13 +19,13 @@ include($_SERVER['DOCUMENT_ROOT'].'/db_connect.php');
 global $conn;
 
 
-//Clear the log
+//Clear the logs
 $logfile = $_SERVER['DOCUMENT_ROOT'].'/nms.log';
+$progressfile = $_SERVER['DOCUMENT_ROOT'].'/progress.log';
 file_put_contents($logfile,'');
-
+file_put_contents($progressfile,'');
 
 // Open XML capture file
-print $_POST['file'];
 if(! $fp=fopen($filename,"r") ){
     error_log("Openning file failed\n",3,$logfile);
     exit;
@@ -53,9 +53,12 @@ while ($data=fread($fp,4096)) {
 xml_parser_free($parser);
 $conn->close();
 
-header("Location: http://localhost/data/log.php");
-die();
-
+include($_SERVER['DOCUMENT_ROOT'].'/data/sidebar.php');
+$content ='<h3>Done!</h3>
+			</br>
+			<p>Take a look at <a href="/data/log.php">the log</a>
+			 to see how it went...</p>';
+include($_SERVER['DOCUMENT_ROOT'].'/theme/base.php');
 
 
 ?>

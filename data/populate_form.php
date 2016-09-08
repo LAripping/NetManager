@@ -3,7 +3,6 @@
 include($_SERVER['DOCUMENT_ROOT'].'/data/sidebar.php');
 
 
-
 $content = '<form action="/data/populate.php" method="post">
 				<h3>Select XML file to process</h3>
 				</br>

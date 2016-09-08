@@ -172,7 +172,7 @@ function fill_fields($parser,$element_name,$element_attrs){
 
                 case "ip.dst":
                     $fields['DEVICE_DST__ip_address'] = $element_attrs['SHOW'];
-                    error_log("--destination ip address: $fields[DEVICE_DST__ip_address]\n",$logfile);
+                    error_log("--destination ip address: $fields[DEVICE_DST__ip_address]\n",3,$logfile);
                     break;
 
             }       #switch field_name
@@ -195,7 +195,8 @@ function start($parser,$element_name,$element_attrs) {
 // Function to use at the end of an element
 function stop($parser,$element_name) {
     global $conn;
-    global $content,$count,$logfile, $fields;
+    global $content,$count,$fields;
+    global $logfile, $progressfile;
 
     switch($element_name){
         case "PACKET":
@@ -234,6 +235,10 @@ function stop($parser,$element_name) {
 
             //Mark the end of packet processing in log
             error_log("\n\n",3,$logfile);
+            
+            if($count%100==0)
+            	error_log("$count packets processed...\n",3,$progressfile);
+            
             break;
     }
 }

@@ -76,8 +76,8 @@ function insert_geninfo( $fields,$count ){
                                  $fields['num'],
                                  $fields['packet_size'],
                                  $fields['protocols']);
-    error_log("*About to insert packet with geninfo:\nINSERT INTO packet..\n",
-    														3,$logfile);
+    error_log("*About to insert packet with geninfo:\n
+    INSERT INTO packet(time,num,size,protocols)..\n",3,$logfile);
     if(! $q_insert->execute() ){
         error_log("ERROR: Couldn't execute insert statement 
         	for packet #$count,
@@ -87,6 +87,7 @@ function insert_geninfo( $fields,$count ){
         return null;
     }
     $in_id= $q_insert->insert_id;
+	error_log("*Inserted packet, id=$in_id\n",3,$logfile);
     $q_insert->close();
 	return $in_id;
 }
@@ -138,8 +139,8 @@ function insert_packet( $fields,$count,$in_id ){
 /*
  * Returns 
  *	-null if something goes wrong
- *	-True if wlan is found
  *	-False if wlan is not found in DB
+ *	-The ssid of the wlan fpund in DB
  */
 function check_if_wlan_exists( $ssid ){
 	global $conn,$logfile;
@@ -169,7 +170,7 @@ function check_if_wlan_exists( $ssid ){
     
 	if($found_ssid){
         error_log("Wlan already in DB. Skipping\n",3,$logfile);
-		$ret = True;
+		$ret = $found_ssid;
     } else {
 		$ret = False;
 	}
@@ -180,6 +181,7 @@ function check_if_wlan_exists( $ssid ){
 	}while($conn->more_results()&&$conn->next_result());
 	
 	$q_select->close();
+	
     return $ret;
 }
 
@@ -191,7 +193,7 @@ function check_if_wlan_exists( $ssid ){
  * Returns 
  * 	-null if something goes wrong
  *	-False if packet is not found in DB
- *	-the 'hw_address' attribute of the rown found
+ *	-the 'hw_address' attribute of the row found
  */
 function check_if_device_exists( $hw_address ){
 	global $conn,$logfile;
@@ -261,7 +263,8 @@ function insert_rest( $fields,$count ){
 			}						                
 						                
 			$q_insert->bind_param('s',$fields['dest_hw_address']);
-    		error_log("*About to insert dest device :\nINSERT INTO device..\n",
+    		error_log("*About to insert dest device :\n
+    		INSERT INTO device(hw_address) VALUES(".$fields['dest_hw_address'].")\n",
     														3,$logfile);								   
 			if(! $q_insert->execute() ){
 				error_log("ERROR: Couldn't execute insert statement
@@ -271,7 +274,8 @@ function insert_rest( $fields,$count ){
    			    $q_insert->close();
 				return null;
 			}
-			$d_device_id= $q_insert->insert_id;
+			$d_device_id= $fields['dest_hw_address'];
+			error_log("*Inserted dest device, id=$d_device_id\n",3,$logfile);
 			$q_insert->close();
 		} 
 	}
@@ -294,8 +298,9 @@ function insert_rest( $fields,$count ){
 			}					                
 							            
 			$q_insert->bind_param('s',$fields['source_hw_address']);
-			error_log("*About to insert src device :\nINSERT INTO device..\n",
-																3,$logfile);
+			error_log("*About to insert src device :\n
+			INSERT INTO device(hw_address) VALUES(".$fields['source_hw_address'].")\n",
+														3,$logfile);
 			if(! $q_insert->execute() ){
 				error_log("ERROR: Couldn't execute insert statement 
 					for device #$fields[source_hw_address],
@@ -304,7 +309,8 @@ function insert_rest( $fields,$count ){
 				$q_insert->close();
 				return null;
 			}
-			$s_device_id= $q_insert->insert_id;
+			$s_device_id= $fields['source_hw_address'];
+			error_log("*Inserted src device, id=$s_device_id\n",3,$logfile);
 			$q_insert->close();
 		}
 	}
@@ -327,7 +333,8 @@ function insert_rest( $fields,$count ){
 			}	                    
 						                
 			$q_insert->bind_param('s',$fields['ssid']);
-    		error_log("*About to insert wlan :\nINSERT INTO wlan..\n",
+    		error_log("*About to insert wlan :\n
+    		INSERT INTO wlan(ssid) VALUES(".$fields['ssid'].")\n",
     														3,$logfile);
 			if(! $q_insert->execute() ){
 				error_log("ERROR: Couldn't execute insert statement 
@@ -337,7 +344,8 @@ function insert_rest( $fields,$count ){
 				$q_insert->close();    
 				return null;
 			}
-			$wlan_id= $q_insert->insert_id;
+			$wlan_id= $fields['ssid'];
+			error_log("*Inserted wlan, id=$wlan_id\n",3,$logfile);			
 			$q_insert->close();
 		}
 	}
