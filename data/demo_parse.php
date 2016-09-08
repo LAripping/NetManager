@@ -1,8 +1,5 @@
 <?php
 
-///////////////DEMO UNPREPARED SELECT////////////////////////////////////
-
-
 include($_SERVER['DOCUMENT_ROOT'].'/data/sidebar.php');
 //$no_sidebar = TRUE;
 
@@ -10,30 +7,16 @@ include($_SERVER['DOCUMENT_ROOT'].'/db_connect.php');
 #Returns an instanciated connection object ( $conn )
 
 
-$content = '<p> UNPREPARED SELECT </br>';
 
-$stmt = "SELECT * FROM packets";
-$result = $conn->query($stmt);
-
-if ($result == TRUE && $result->num_rows > 0) {
-    // output data of each row
-    while($row = $result->fetch_assoc()) {
-        $content .= "id: " . $row["id"] . "</br>";
-    }
-} else {
-    $content .= "0 results";
-}
-
-
-$content .= '</p></br>';
 
 ///////////////DEMO PARSE////////////////////////////////////
 
 $logfile = $_SERVER['DOCUMENT_ROOT'].'/nms.log';
 file_put_contents($logfile, ""); #Clear log
 
-$content = '<p> Testing the XML parser... </br>';
-$content = '<strong>5 Packets</strong> should appear (also check the <a href="/nms.log">log file</a>) </br>';
+$content = '<h3> Testing the XML parser</h3>
+			</br>
+			<p>5 Packets</p> should appear (also check the <a href="/nms.log">log file</a>) </br>';
 $count = 1;
 
 // Initialize the XML parser
@@ -50,7 +33,7 @@ function start($parser,$element_name,$element_attrs) {
 
     switch($element_name) {
         case "PACKET":
-            $content  .= "</br><h5>Packet $count</h5>";
+            $content  .= "</br><p>Packet $count</p>";
             break;
         case "PROTO":
             $proto_name = $element_attrs['NAME'];

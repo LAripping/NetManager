@@ -20,6 +20,8 @@ if( isset($_POST['submit']) ){
 	$content = '</br><p>Database emptied!</p></br>';
 } else{
 	$content = '<form method="post">
+					<h3>Please Confirm</h3>
+					</br>
 					<p>Are you sure you want to empty the database?</p>
 					</br>
 					<input type="submit" name="submit" value="Yes">

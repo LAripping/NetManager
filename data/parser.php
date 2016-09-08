@@ -236,7 +236,7 @@ function stop($parser,$element_name) {
             //Mark the end of packet processing in log
             error_log("\n\n",3,$logfile);
             
-            if($count%100==0)
+            if($count%50==0)
             	error_log("$count packets processed...\n",3,$progressfile);
             
             break;

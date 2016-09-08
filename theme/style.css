@@ -161,7 +161,10 @@ color:white;
 
 }
 
-
+#leftmenu_main ul li a strong
+{
+//color:red;
+}
 
 
 #content
