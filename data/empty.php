@@ -17,7 +17,7 @@ if( isset($_POST['submit']) ){
     	if($res) $res->free();
     }while( $conn->more_results()&&$conn->next_result() );
 
-	$content = '</br><p>Database emptied!</p></br>';
+	$content = '<h3>Database emptied!</h3>';
 } else{
 	$content = '<form method="post">
 					<h3>Please Confirm</h3>

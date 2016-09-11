@@ -81,8 +81,10 @@ function fill_fields($parser,$element_name,$element_attrs){
                     break;
 
                 case "wlan_mgt.ssid":
-                    $fields['ssid'] = $element_attrs['SHOW'];
-                    error_log("--belongs in wlan with ssid: $fields[ssid]\n",3,$logfile);
+                    if( $element_attrs['SHOW'] ){
+		                $fields['ssid'] = $element_attrs['SHOW'];
+		                error_log("--belongs in wlan with ssid: $fields[ssid]\n",3,$logfile);
+		            }
                     break;
 
                 case "wlan.bssid":
@@ -106,7 +108,7 @@ function fill_fields($parser,$element_name,$element_attrs){
                     if( $element_attrs['SHOW'] == '2' ){
                         $fields['encryption'] = 'wep/psk';
                     }
-                    error_log("--using WEP-PSK encryption,3,$logfile");
+                    error_log("--using WEP-PSK encryption\n",3,$logfile);
                     break;
 
                 case "wlan.fc.protected": #also check the wlan.fc.type above
