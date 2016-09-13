@@ -171,7 +171,7 @@ color:white;
 {
 display:block;
 float:left;
-width:689px;
+width:900px;
 height:auto;
 padding-left:10px;
 padding-top:15px;
@@ -184,7 +184,7 @@ padding-bottom:5px;
 {
 	background-image:url(images/main_top.png);
 	background-repeat:no-repeat;
-	width:689px;
+	width:900px;
 	height:23px;
 }
 
@@ -192,7 +192,7 @@ padding-bottom:5px;
 {
 background-image:url(images/main_back.png);
 background-repeat:repeat-y;
-width:659px;
+width:870px;
 padding-left:15px;
 padding-right:15px;
 }
@@ -201,7 +201,7 @@ padding-right:15px;
 {
 background-image:url(images/main_bottom.png);
 background-repeat:no-repeat;
-width:689px;
+width:900px;
 height:23px;
 }
 

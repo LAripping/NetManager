@@ -82,6 +82,7 @@ function fill_fields($parser,$element_name,$element_attrs){
 
                 case "wlan_mgt.ssid":
                     if( $element_attrs['SHOW'] ){
+		                if( $element_attrs['SHOW']=='None' ) break;
 		                $fields['ssid'] = $element_attrs['SHOW'];
 		                error_log("--belongs in wlan with ssid: $fields[ssid]\n",3,$logfile);
 		            }
@@ -215,9 +216,12 @@ function stop($parser,$element_name) {
           
             
             //Insert the rows in the remaining tables
-            $ret == insert_rest($fields,$count);
+            $ret = insert_rest($fields,$count);
             if(is_null($ret)) break;
-            
+            if( is_string($ret) ){		#ssid guessed from devices, set it
+            	$fields['ssid'] = $ret;
+            	error_log("*Set ssid='$fields[ssid]' after the guess\n",3,$logfile);
+            }
             	
             //Insert packet (geninfo) fields only, then unset them
 			$ret = insert_geninfo($fields,$count);

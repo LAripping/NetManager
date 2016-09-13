@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS `captures`.`wlan` ;
 CREATE TABLE IF NOT EXISTS `captures`.`wlan` (
   `ssid` VARCHAR(45) NOT NULL COMMENT 'wlan_mgt.ssid',
   `bssid` VARCHAR(45) NULL COMMENT 'wlan.bssid',
-  `supported_rates` VARCHAR(45) NULL COMMENT 'wlan_mgt.supported_rates',
+  `supported_rates` VARCHAR(125) NULL COMMENT 'wlan_mgt.supported_rates',
   `encryption` VARCHAR(45) NULL COMMENT 'wlan_mgt.rsn.akms.type==2 (wep/psk)\nOR\npacket.protocol=eapol (wpa/wpa2)',
   `ap_address` VARCHAR(45) NULL COMMENT 'the hw_address of the device\nif it sends beacons',
   PRIMARY KEY (`ssid`),

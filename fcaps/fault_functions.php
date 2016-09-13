@@ -3,6 +3,7 @@
 include($_SERVER['DOCUMENT_ROOT'].'/db_connect.php');
 global $conn; 
 
+/******************************** FEATURE 1 ******************************/
 
 /*
  * Returns 
@@ -119,8 +120,157 @@ function get_packet_count(){
 	
 	
 	
+/******************************** FEATURE 2 ******************************/	
 	
 	
+/*
+ * Returns 
+ *	array( 
+ *		$ssid => array( 
+ *					'supported_rates'	=> $supported_rates
+ * 					'avg_rate'			=> $avg_rate
+ *  			 )
+ *	)
+ *
+ */ 
+function get_wlans(){
+	global $conn; 
+	
+	$q = "	SELECT wlan.ssid, supported_rates, AVG(rate) as avg_rate
+		 	FROM wlan,packet 
+		 	WHERE wlan.ssid=packet.ssid
+		 	GROUP BY wlan.ssid;";
+	
+	if(! $result = $conn->query($q) )	die("$conn->error");
+	
+	$ret = array();
+	while( $row = $result->fetch_assoc() ){
+		$ret[ $row['ssid'] ] = 
+			array(	'supported_rates'=> $row['supported_rates'],
+					'avg_rate' 		 => $row['avg_rate'] );
+	}
+	
+	$result->free();
+	return $ret;
+}	
+
+
+
+
+# array( hw_addr => hw_addr_res,avg_signal_strength_this_dev )
+	
+/*
+ * Params
+ *	$ssid whose network the devices will be retrieved
+ 
+ 
+ * Returns 
+ *	array( 
+ *		$hw_addr => array( 
+ *						'hw_addr_res'					=> $hw_addr_res
+ * 						'avg_signal_strength_this_dev'  => $...
+ *  			 	)
+ *	)
+ *
+ *	TRICK: The last key is sum, and the value after used must be unset
+ *
+ */ 
+function get_wlan_devices( $ssid ){
+	global $conn; 
+	
+	# get all packets whose *destination* is a device in the wlan specified
+	$q = "	SELECT dest_hw_address AS hw_address, hw_addr_res, 
+				AVG(signal_strength) AS avg_signal_strength_this_dev 
+			FROM packet,device
+			WHERE dest_hw_address=hw_address
+			AND id IN(
+				SELECT id
+				FROM packet
+				WHERE source_hw_address IN (
+					SELECT hw_address
+					FROM device
+					WHERE wlan_assoc='Tsaou'
+				) OR dest_hw_address IN (
+					SELECT hw_address
+					FROM device
+					WHERE wlan_assoc='$ssid'
+				)
+			) 
+			AND dest_hw_address<>'ff:ff:ff:ff:ff:ff'
+			GROUP BY dest_hw_address ;";
+	
+	if(! $result = $conn->query($q) )	die("$conn->error");
+	
+	$ret1 = array();
+	while( $row = $result->fetch_assoc() ){
+		$ret1[ $row['hw_address'] ] = 
+			array(	'hw_addr_res'
+						=> $row['hw_addr_res'],
+					'avg_signal_strength_this_dev' 
+						=> $row['avg_signal_strength_this_dev'] );
+	}
+	$result->free();
+	
+	# get all packets whose *source* is a device in the wlan specified
+	$q = "	SELECT source_hw_address AS hw_address, hw_addr_res, 
+				AVG(signal_strength) AS avg_signal_strength_this_dev 
+			FROM packet,device
+			WHERE source_hw_address=hw_address
+			AND id IN(
+				SELECT id
+				FROM packet
+				WHERE source_hw_address IN (
+					SELECT hw_address
+					FROM device
+					WHERE wlan_assoc='Tsaou'
+				) OR dest_hw_address IN (
+					SELECT hw_address
+					FROM device
+					WHERE wlan_assoc='$ssid'
+				)
+			) 
+			GROUP BY dest_hw_address ;";
+	
+	if(! $result = $conn->query($q) )	die("$conn->error");
+	
+	$ret2 = array();
+	while( $row = $result->fetch_assoc() ){
+		$ret2[ $row['hw_address'] ] = 
+			array(	'hw_addr_res'
+						=> $row['hw_addr_res'],
+					'avg_signal_strength_this_dev' 
+						=> $row['avg_signal_strength_this_dev'] );
+	}	
+	$result->free();
+	
+	
+	#manually merge the tables, to avoid duplicate hw_addres 'es
+	#when that occurs, set avg_... to the average of the two avg'es
+	$ret = array();
+	foreach($ret1 as $hw_address1 => $attrs1){
+		foreach($ret2 as $hw_address2 => $attrs2){
+		
+			if( $hw_address1==$hw_address2 ){
+				$avg_of_avges =  $attrs1['avg_signal_strength_this_dev']
+								+$attrs2['avg_signal_strength_this_dev']
+								/2.0;
+			
+				$ret1[$hw_address1]['avg_signal_strength_this_dev']=$avg_of_avges;
+				
+				unset( $ret2[$hw_address2] );
+			}
+		}
+	}
+	$ret = $ret1 + $ret2;
+	
+	$sum = 0;
+	foreach($ret as $hw_address => $attrs)
+		$sum += $attrs['avg_signal_strength_this_dev'];
+		
+	$ret['sum']=$sum;	
+	
+	return $ret;
+}	
 	
 	
 	

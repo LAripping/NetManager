@@ -149,7 +149,7 @@ function insert_packet( $fields,$count,$in_id ){
  * Returns 
  *	-null if something goes wrong
  *	-False if wlan is not found in DB
- *	-The ssid of the wlan fpund in DB
+ *	-The ssid of the wlan found in DB
  */
 function check_if_wlan_exists( $ssid ){
 	global $conn,$logfile;
@@ -178,7 +178,7 @@ function check_if_wlan_exists( $ssid ){
     $q_select->fetch();
     
 	if($found_ssid){
-        error_log("Wlan already in DB. Skipping\n",3,$logfile);
+        error_log("Wlan '$ssid' already in DB. Skipping\n",3,$logfile);
 		$ret = $found_ssid;
     } else {
 		$ret = False;
@@ -202,12 +202,12 @@ function check_if_wlan_exists( $ssid ){
  * Returns 
  * 	-null if something goes wrong
  *	-False if packet is not found in DB
- *	-the 'hw_address' attribute of the row found
+ *	-the device's 'hw_address' and 'wlan_assoc' if found
  */
 function check_if_device_exists( $hw_address ){
 	global $conn,$logfile;
 
-	$q_select = $conn->prepare("SELECT hw_address
+	$q_select = $conn->prepare("SELECT hw_address,wlan_assoc
                                 FROM device
                                 WHERE hw_address = ?");
 	if( !$q_select ){
@@ -227,13 +227,14 @@ function check_if_device_exists( $hw_address ){
         $q_select->close();
         return null;
     }
-    $q_select->bind_result($found_hw_address);
+    $q_select->bind_result($hw_address,$wlan_assoc);
     $q_select->fetch();
     
     
-	if($found_hw_address){
+	if($hw_address){
         error_log("Device already in DB. Skipping\n",3,$logfile);
-        $ret = $found_hw_address;
+        $ret =array( 'hw_address' => $hw_address,
+        			 'wlan_assoc' => $wlan_assoc);
     } else {
 		$ret = False;
 	}
@@ -249,6 +250,13 @@ function check_if_device_exists( $hw_address ){
 }
 
 
+/*
+ * Returns 
+ * 	-null if something goes wrong
+ *  -the 'ssid' if injected (since $fields is local and edits will be lost)
+ *  -true if everything's ok and no ssid was injected
+ *
+ */
 function insert_rest( $fields,$count ){
 	global $conn, $logfile;	
 	
@@ -259,8 +267,12 @@ function insert_rest( $fields,$count ){
 	if( !is_null($fields['dest_hw_address']) ){  
 		if( $fields['dest_hw_address']!='ff:ff:ff:ff:ff:ff' ){		
 											# Insert the device it was sent to
-			$d_device_id = check_if_device_exists( $fields['dest_hw_address'] );
-			if( is_null($d_device_id) ){
+			$d_device_array = check_if_device_exists( $fields['dest_hw_address'] );
+			if($d_device_array) $d_device_id = $d_device_array['hw_address'];
+			else $d_device_id=False;
+			
+			
+			if( is_null($d_device_array) ){
 				return null;
 			} else if( $d_device_id==False ){
 				$q_insert = $conn->prepare("INSERT INTO device(hw_address)
@@ -302,8 +314,12 @@ function insert_rest( $fields,$count ){
 	
 	if( !is_null($fields['source_hw_address']) ){  
 											# Insert the device it was sent from
-		$s_device_id = check_if_device_exists( $fields['source_hw_address'] );
-		if( is_null($s_device_id) ){
+		$s_device_array =  check_if_device_exists( $fields['source_hw_address'] );
+		if($s_device_array) $s_device_id = $s_device_array['hw_address'];
+		else $s_device_id = False;
+		
+		
+		if( is_null($s_device_array) ){
 			return null;
 		} else if( $s_device_id==False ){
 			$q_insert = $conn->prepare("INSERT INTO device(hw_address)
@@ -337,6 +353,20 @@ function insert_rest( $fields,$count ){
 
 	//Insert wlan table rows
 	
+	$ret = True;
+	if(! $fields['ssid'] ){			# Guess the ssid through the devices...
+		if( $s_device_array['wlan_assoc'] ){
+			$fields['ssid'] = $s_device_array['wlan_assoc'];
+		} else if( $d_device_array['wlan_assoc'] ){
+			$fields['ssid'] = $s_device_array['wlan_assoc'];
+		}
+		
+		if( $fields['ssid'] ){
+			error_log("*Injected ssid='$fields[ssid]' from devices\n",3,$logfile);
+			$ret = $fields['ssid'];
+		}
+	}
+	
 	if( $fields['ssid'] ){
 		$wlan_id = check_if_wlan_exists( $fields['ssid']);
 		if( is_null($wlan_id) ){
@@ -366,7 +396,7 @@ function insert_rest( $fields,$count ){
 				return null;
 			}
 			$wlan_id= $fields['ssid'];
-			error_log("*Inserted wlan, id=$wlan_id\n",3,$logfile);			
+			error_log("*Inserted wlan, ssid=$wlan_id\n",3,$logfile);			
 			$q_insert->close();
 		}
 	}
@@ -439,7 +469,7 @@ function insert_rest( $fields,$count ){
 				break;			
 		}while( True );
     }
-	return True;					    
+	return $ret;					    
 }
 
 
