@@ -69,7 +69,8 @@ $wlans = get_wlans();
 # array( ssid => array( supported_rates,avg_rate ) )
 
 $feature2= "<div id=thresholds >
-				<p>2.Data Rates and Signal Strength for wlan's devices</p>";
+				<p>2.Data Rates and Signal Strength for wlan's devices</p>
+				(processing packets from devices associated in this wlan)";
 
 if( isset($_POST['submit']) ){
 	$ssid = $_POST['ssid'];
@@ -80,34 +81,48 @@ if( isset($_POST['submit']) ){
 	$avg_signal_strength_all_devs =  $wlan_devices['sum'] / count($wlan_devices);	
 	unset($wlan_devices['sum']);
 	
+	$ext_sup = strstr($attrs['supported_rates'],'Ext');
+	$sup = strstr($attrs['supported_rates'],'Ext',True);
+	$avg_rate = round($attrs['avg_rate'],2);
+	$avg_sig = round($avg_signal_strength_all_devs,2).' dBm';
+	
 	$feature2.="<table>
 					<tr>
-			 			<th>WLAN's SSID</th>
-			 			<th colspan='2'>$ssid</th>
+			 			<th>WLAN selected</th>
+			 			<td>SSID:</td>
+			 			<td>$ssid</td>
 			 		</tr>
 			 		<tr>
-			 			<td rowspan='2'> </td>
-			 			<td colspan='2'>$attrs[supported_rates]</td>
+			 			<td rowspan='3'> </td>
+			 			<td colspan='2'>$sup</br>$ext_sup</td>
 			 		</tr>
 			 		<tr>
 			 			<td>Average Rate:</td>
-			 			<td>$attrs[avg_rate]</td>
+			 			<td>$avg_rate</td>
 			 		</tr>
 			 		<tr>
-			 			<th colspan='2'>Devices in WLAN (resolved)</th>
-			 			<th>Average signal strength for wlan:
-			 			$avg_signal_strength_all_devs</th>
+				 		<td>Average signal strength for wlan:</td>
+				 		<td>$avg_sig</td>
+			 		</tr>
+			 		<tr>
+			 			<th colspan='3'>Devices in WLAN (resolved)</th>
 			 		<tr>";
 			 			
+	
+	$count = count($wlan_devices);
+	$i=1;
 	foreach( $wlan_devices as $hw_address => $attrs ){
+		
 		$hw_addr_res = ( $attrs['hw_addr_res'] ? "($attrs[hw_addr_res])" : "" );
+		$dev_sig = round($attrs['avg_signal_strength_this_dev'],2).' dBm';
 		
 		$feature2 .="
-					<tr>
-						<td> </td>
+					<tr>"
+						.($i==1 ? "<td rowspan=$count></td>":"")."
 						<td>$hw_address $hw_addr_res</td>
-						<td>$attrs[avg_signal_strength_this_dev]</td>
+						<td>$dev_sig</td>
 					</tr>";
+		$i++;			
 	}
 	unset($attrs);
 	$feature2.="</table>";
@@ -123,10 +138,10 @@ $feature2.="</div>
 					 			
 							
 
-$content = "<table>
+$content = "<table style='margin-left:0px;'>
 				<tr>
-					<td class=divlike> $feature1 </td>
-					<td class=divlike> $feature2 </td>
+					<td style='border:none;'> $feature1 </td>
+					<td style='border:none;vertical-align:top;'> $feature2 </td>
 				</tr>
 			</table>";
 			
