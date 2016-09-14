@@ -162,7 +162,7 @@ function get_wlans(){
  *	ssid: of the wlan to retrieve info for 
  *
  * Returns 
- *	string: (e.g) '7 (70%), 9 (20%), 11(10%) '
+ *	array( $channel => $pct )
  *
  */ 
 function get_wlan_channels($ssid){
@@ -186,14 +186,14 @@ function get_wlan_channels($ssid){
 		 	FROM packet 
 		 	WHERE ssid='$ssid'
 		 	GROUP BY channel
-		 	ORDER BY count;";
+		 	ORDER BY count DESC;";
 	
 	if(! $result = $conn->query($q) )	die("$conn->error");
 	
-	$ret = "";
+	$ret = array();
 	while( $row = $result->fetch_assoc() ){
 		$pct = round( ($row['count']/$total * 100.0),2 );
-		$ret .= "$row[channel] ($pct%), ";
+		$ret[ $row['channel'] ] = $pct;
 	}
 	
 	$result->free();

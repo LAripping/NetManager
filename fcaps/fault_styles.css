@@ -42,6 +42,17 @@
 	text-decoration:underline;
 }
 
+#thresholds td.data-center{
+	color:darkgrey;
+	text-align:center;
+}
 
+#thresholds td.data{
+	color:darkgrey;
+}
+
+#thresholds td.ssid{
+	color:blue;
+}
 
 

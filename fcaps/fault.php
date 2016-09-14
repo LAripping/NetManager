@@ -89,38 +89,58 @@ if( isset($_POST['submit']) ){
 	$avg_sig = round($avg_signal_strength_all_devs,2).' dBm';
 	
 	$channels = get_wlan_channels($ssid);
-	
+	# array( $channel => $pct )
+		
 	$feature2.="<table>
 					<tr>
 			 			<th>WLAN selected</th>
 			 			<td>SSID:</td>
-			 			<td>$ssid</td>
+			 			<td colspan='2' class='ssid'>$ssid</td>
 			 		</tr>
 			 		<tr>
-			 			<td rowspan='5'> </td>
+			 			<td rowspan='4'> </td>
 			 			<td>Supported Rates:</td>
-			 			<td>$sup_num [Mbit/sec]</td>
+			 			<td colspan='2' class='data'>$sup_num [Mbit/sec]</td>
 			 		</tr>
 			 		<tr>
 				 		<td>Extended Supported Rates:</td>
-			 			<td>$ext_sup_num [Mbit/sec]</td>
+			 			<td colspan='2' class='data'>$ext_sup_num [Mbit/sec]</td>
 			 		</tr>
 			 		<tr>
 			 			<td>Average Rate:</td>
-			 			<td>$avg_rate [Mbit/sec]</td>
+			 			<td colspan='2' class='data'>$avg_rate [Mbit/sec]</td>
 			 		</tr>
 			 		<tr>
 				 		<td>Average signal strength for wlan:</td>
-				 		<td>$avg_sig</td>
+				 		<td colspan='2' class='data'>$avg_sig</td>
 			 		</tr>
 			 		<tr>
-				 		<td>Channels used:</td>
-				 		<td>$channels</td>
-			 		</tr>
-			 		<tr>
-			 			<th colspan='3'>Devices in WLAN (resolved)</th>
-			 		<tr>";
-			 			
+				 		<td></td>
+				 		<th>Channels used:</th>
+				 		<td>Channel Number:</td>
+				 		<td>Pct. of packets:</td>
+			 		</tr>";
+			 		
+	$count = count($channels);
+	$i=1;		 		
+	foreach( $channels as $no => $pct ){		 		
+		$feature2.="
+					<tr>"
+						.($i==1 ? "<td colspan='2' rowspan=$count></td>":"")."
+			 			<td class='data-center' >$no</td>
+			 			<td class='data-center' >$pct %</td>
+			 		</tr>";
+		$i++;
+	}
+	unset($pct);	 			
+	
+	$feature2.=" 	<tr>
+						<td></td>
+				 		<th >Devices in WLAN (resolved)</th>
+				 		<td>HW address:</td>
+				 		<td>Device's avg. Signal Strength</td> 
+				 	</tr>";
+
 	
 	$count = count($wlan_devices);
 	$i=1;
@@ -131,9 +151,9 @@ if( isset($_POST['submit']) ){
 		
 		$feature2 .="
 					<tr>"
-						.($i==1 ? "<td rowspan=$count></td>":"")."
-						<td>$hw_address $hw_addr_res</td>
-						<td>$dev_sig</td>
+						.($i==1 ? "<td colspan='2' rowspan=$count></td>":"")."
+						<td class='data-center'>$hw_address $hw_addr_res</td>
+						<td class='data-center'>$dev_sig</td>
 					</tr>";
 		$i++;			
 	}
@@ -151,7 +171,7 @@ $feature2.="</div>
 					 			
 							
 
-$content = "<table style='margin-left:0px;'>
+$content = "<table style='margin-left:0px;background-color:white;'>
 				<tr>
 					<td style='border:none;'> $feature1 </td>
 					<td style='border:none;vertical-align:top;'> $feature2 </td>
