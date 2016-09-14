@@ -157,7 +157,50 @@ function get_wlans(){
 
 
 
-# array( hw_addr => hw_addr_res,avg_signal_strength_this_dev )
+/*
+ * Params
+ *	ssid: of the wlan to retrieve info for 
+ *
+ * Returns 
+ *	string: (e.g) '7 (70%), 9 (20%), 11(10%) '
+ *
+ */ 
+function get_wlan_channels($ssid){
+	global $conn; 
+	
+	# Get total # of packets for the wlan
+	$q = "	SELECT COUNT(*) AS total
+			FROM packet
+			WHERE ssid='$ssid';";
+			
+	if(! $result = $conn->query($q) )	die("$conn->error");
+	
+	while( $row = $result->fetch_assoc() ){
+		$total = $row['total'];
+	}
+	$result->free();
+	
+	
+	# Get channels used and the respective packet # 
+	$q = "	SELECT DISTINCT channel, COUNT(*) AS count
+		 	FROM packet 
+		 	WHERE ssid='$ssid'
+		 	GROUP BY channel
+		 	ORDER BY count;";
+	
+	if(! $result = $conn->query($q) )	die("$conn->error");
+	
+	$ret = "";
+	while( $row = $result->fetch_assoc() ){
+		$pct = round( ($row['count']/$total * 100.0),2 );
+		$ret .= "$row[channel] ($pct%), ";
+	}
+	
+	$result->free();
+	return $ret;
+}
+
+
 	
 /*
  * Params
@@ -189,7 +232,7 @@ function get_wlan_devices( $ssid ){
 				WHERE source_hw_address IN (
 					SELECT hw_address
 					FROM device
-					WHERE wlan_assoc='Tsaou'
+					WHERE wlan_assoc='$ssid'
 				) OR dest_hw_address IN (
 					SELECT hw_address
 					FROM device
@@ -222,7 +265,7 @@ function get_wlan_devices( $ssid ){
 				WHERE source_hw_address IN (
 					SELECT hw_address
 					FROM device
-					WHERE wlan_assoc='Tsaou'
+					WHERE wlan_assoc='$ssid'
 				) OR dest_hw_address IN (
 					SELECT hw_address
 					FROM device

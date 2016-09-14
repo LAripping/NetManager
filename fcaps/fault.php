@@ -66,7 +66,7 @@ $feature1 .= "	</table>
 /******************************** FEATURE 2 ******************************/
 
 $wlans = get_wlans(); 
-# array( ssid => array( supported_rates,avg_rate ) )
+# array( ssid => array( supported_rates,avg_rate,channels_used ) )
 
 $feature2= "<div id=thresholds >
 				<p>2.Data Rates and Signal Strength for wlan's devices</p>
@@ -83,8 +83,12 @@ if( isset($_POST['submit']) ){
 	
 	$ext_sup = strstr($attrs['supported_rates'],'Ext');
 	$sup = strstr($attrs['supported_rates'],'Ext',True);
+	$sup_num = str_replace('Supported Rates',' ',strstr($sup,'[Mbit',True));
+	$ext_sup_num = str_replace('Extended Supported Rates',' ',strstr($ext_sup,'[Mbit',True));
 	$avg_rate = round($attrs['avg_rate'],2);
 	$avg_sig = round($avg_signal_strength_all_devs,2).' dBm';
+	
+	$channels = get_wlan_channels($ssid);
 	
 	$feature2.="<table>
 					<tr>
@@ -93,16 +97,25 @@ if( isset($_POST['submit']) ){
 			 			<td>$ssid</td>
 			 		</tr>
 			 		<tr>
-			 			<td rowspan='3'> </td>
-			 			<td colspan='2'>$sup</br>$ext_sup</td>
+			 			<td rowspan='5'> </td>
+			 			<td>Supported Rates:</td>
+			 			<td>$sup_num [Mbit/sec]</td>
+			 		</tr>
+			 		<tr>
+				 		<td>Extended Supported Rates:</td>
+			 			<td>$ext_sup_num [Mbit/sec]</td>
 			 		</tr>
 			 		<tr>
 			 			<td>Average Rate:</td>
-			 			<td>$avg_rate</td>
+			 			<td>$avg_rate [Mbit/sec]</td>
 			 		</tr>
 			 		<tr>
 				 		<td>Average signal strength for wlan:</td>
 				 		<td>$avg_sig</td>
+			 		</tr>
+			 		<tr>
+				 		<td>Channels used:</td>
+				 		<td>$channels</td>
 			 		</tr>
 			 		<tr>
 			 			<th colspan='3'>Devices in WLAN (resolved)</th>
