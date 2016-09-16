@@ -72,7 +72,7 @@ $feature2= "<div id=thresholds >
 				<p>2.Data Rates and Signal Strength for wlan's devices</p>
 				(processing packets from devices associated in this wlan)";
 
-if( isset($_POST['submit2']) ){
+if( isset($_POST['submit2']) || isset($_POST['submit3']) ){
 	$ssid = $_POST['ssid'];
 	$attrs = $wlans[$ssid];	
 	$wlan_devices = get_wlan_devices( $ssid );
@@ -179,7 +179,8 @@ if( isset($_POST['submit3']) ){
 	//bla
 } else{
 	$feature3.="<form action='/fcaps/fault.php' method='post'>
-					</br><input type='submit' name='submit2' value='Suggest Actions'>
+					</br><input type='submit' name='submit3' value='Suggest Actions'>
+					<input type='hidden' name='ssid' value='$_POST[ssid]'>
 				</form>";
 }
 $feature2.="</div>
@@ -206,12 +207,15 @@ INDICATORS AND ACTIONS:
 		
 /****************************** PUTTING IT TOGETHER **********************/		
 
-$content = "<table style='margin-left:0px;background-color:white;'>
-				<tr style='height:0%;'>
-					<td rowspan=2 style='border:none;'> $feature1 </td>
+$content = "<table style='margin-left:0px;background-color:white;'>";
+if( isset($_POST['submit2'])||isset($_POST['submit3']) ) $content.="
+				<tr style='height:0%;'>";
+else $content.="<tr>";
+			
+$content .="		<td rowspan=2 style='border:none;'> $feature1 </td>
 					<td style='border:none; vertical-align:top;'> $feature2 </td>
 				</tr>";
-if( isset($_POST['submit2']) ) $content.="
+if( isset($_POST['submit2'])||isset($_POST['submit3']) ) $content.="
 				<tr style='height:auto;'>
 					<td style='border:none; vertical-align:top;'> $feature3 </td>";
 $content .=    "</tr>
