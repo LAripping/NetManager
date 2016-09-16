@@ -37,9 +37,9 @@ $feature1= "<div id=routers_uptime >
 				(# of beacons from the wlan's router / # of packets in this wlan)
 				<table>
 			 		<tr>
-			 			<th>Router (resolved address)</th>
-			 			<th>WLAN's SSID</th>
-			 			<th>Up-time pct.</th>			 			
+			 			<th class=header>Router (resolved address)</th>
+			 			<th class=header>WLAN's SSID</th>
+			 			<th class=header>Up-time pct.</th>			 			
 			 		</tr>";
 			 		
 foreach( $routers as $hw_addr => $attrs ){
@@ -72,7 +72,7 @@ $feature2= "<div id=thresholds >
 				<p>2.Data Rates and Signal Strength for wlan's devices</p>
 				(processing packets from devices associated in this wlan)";
 
-if( isset($_POST['submit']) ){
+if( isset($_POST['submit2']) ){
 	$ssid = $_POST['ssid'];
 	$attrs = $wlans[$ssid];	
 	$wlan_devices = get_wlan_devices( $ssid );
@@ -93,7 +93,7 @@ if( isset($_POST['submit']) ){
 		
 	$feature2.="<table>
 					<tr>
-			 			<th>WLAN selected</th>
+			 			<th class=header>WLAN selected</th>
 			 			<td>SSID:</td>
 			 			<td colspan='2' class='ssid'>$ssid</td>
 			 		</tr>
@@ -136,8 +136,8 @@ if( isset($_POST['submit']) ){
 	
 	$feature2.=" 	<tr>
 						<td></td>
-				 		<th >Devices in WLAN (resolved)</th>
-				 		<td>HW address:</td>
+				 		<th >Devices in WLAN</th>
+				 		<td>HW address: (resolved)</td>
 				 		<td>Device's avg. Signal Strength</td> 
 				 	</tr>";
 
@@ -161,28 +161,66 @@ if( isset($_POST['submit']) ){
 	$feature2.="</table>";
 } else{
 	$feature2.="<form action='/fcaps/fault.php' method='post'>
-					Type in the WLAN's SSID</br>
-					<input type='text' name='ssid' required autocomplete='on'><br>
-					<input type='submit' name='submit' value='Analyze WLAN'>
+					Type in the WLAN's SSID</br></br>
+					<input type='text' name='ssid' required autocomplete='on'></br>
+					<input type='submit' name='submit2' value='Analyze WLAN'>
 				</form>";
 }
 $feature2.="</div>
 			</br>";
 					 			
-							
+/******************************** FEATURE 3 ******************************/
+		
+$feature3= "<div id=actions >
+				<p>3.Correct the faults found</p>
+				(in the whole ecosystem, including all wlans and devices)";
+
+if( isset($_POST['submit3']) ){
+	//bla
+} else{
+	$feature3.="<form action='/fcaps/fault.php' method='post'>
+					</br><input type='submit' name='submit2' value='Suggest Actions'>
+				</form>";
+}
+$feature2.="</div>
+			</br>";
+		
+/* 
+
+INDICATORS AND ACTIONS:
+	1) (color-fade last devs) 
+			low signal stregth + many devices 
+				=> "Interferance" => Reduce devices
+	2) (red highlight the 2 devs w lowest s.s.)
+			low signal stregth 
+				=> "Increase Tx Power",
+				   "Come closer",
+				   "Place router centrally"
+	3) (yellow highlight the channels)
+			high pct in non-ortho channels
+				=> "Switch channel of flows"
+	4) (green highlight avg-rate and sup. rates)
+			avg.rate < median(sup.rates)
+				=> "Router is capable of significally improved rates!" 
+*/		
+		
+/****************************** PUTTING IT TOGETHER **********************/		
 
 $content = "<table style='margin-left:0px;background-color:white;'>
-				<tr>
-					<td style='border:none;'> $feature1 </td>
-					<td style='border:none;vertical-align:top;'> $feature2 </td>
-				</tr>
+				<tr style='height:0%;'>
+					<td rowspan=2 style='border:none;'> $feature1 </td>
+					<td style='border:none; vertical-align:top;'> $feature2 </td>
+				</tr>";
+if( isset($_POST['submit2']) ) $content.="
+				<tr style='height:auto;'>
+					<td style='border:none; vertical-align:top;'> $feature3 </td>";
+$content .=    "</tr>
 			</table>";
 			
 			
 $extra_css = "<link rel='stylesheet' type='text/css' href='/fcaps/fault_styles.css'/>";
 include($_SERVER['DOCUMENT_ROOT'].'/theme/base.php');
 
-# TODO the functions' implementations --left off
 
 ?>
 

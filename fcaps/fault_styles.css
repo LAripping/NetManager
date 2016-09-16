@@ -1,8 +1,5 @@
 
-
-/******************************** FEATURE 1 ******************************/
-
-#routers_uptime{
+#routers_uptime, #thresholds, #actions{
 	overflow:auto;
 	font-size:10px;
 }
@@ -10,6 +7,13 @@
 #routers_uptime th,td{
 	border:1px solid black;
     margin-left:0;
+    padding-right:5px;
+    padding-left:2px;
+}
+
+th.header {
+    background-color: lightblue;
+/*    color: white; */
 }
 
 #routers_uptime table{
@@ -17,30 +21,40 @@
 	margin-top:4px;
 } 
 
-#routers_uptime p{
+#routers_uptime tr:hover{
+	background-color: #f5f5f5
+}
+
+#routers_uptime p, #thresholds p, #actions p{
 	text-decoration:underline;
 }
 
-/******************************** FEATURE 2 ******************************/
+/*
+#routers_uptime tr:nth-child(even){
+	background-color: #f2f2f2;
+}
 
-#thresholds{
-	overflow:auto;
-	font-size:10px;
+#routers_uptime tr:nth-child(even){
+	background-color: #ffffff;
+}
+*/
+
+#thresholds tr:hover{
+	background-color: #f5f5f5
 }
 
 #thresholds table,th,td{
 	border:1px solid black;
     border-collapse: collapse;
     margin-left:0;
+    padding-right:5px;
+    padding-left:2px;
 }
 
 #thresholds table{
 	margin-top:4px;
 } 
 
-#thresholds p{
-	text-decoration:underline;
-}
 
 #thresholds td.data-center{
 	color:darkgrey;
