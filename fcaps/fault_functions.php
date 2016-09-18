@@ -316,5 +316,83 @@ function get_wlan_devices( $ssid ){
 }	
 	
 	
+/******************************** FEATURE 3 ******************************/	
+	
+	
+/*
+ * Params: 
+ * 	$wlan_devices = array... (see above)
+ *	num = the number of devices to be found, that rank the lowest ss 
+ *
+ *
+ * Returns 
+ *	array( $hw2, $hw2, ...)
+ *
+ */ 
+function find_devs_with_min_ss($wlan_devices, $num){
+	$dup = $wlan_devices;
+	$ret = array();
+	while($num){
+		$min = 0;
+		$hw_min = '';
+	
+		foreach($dup as $hw_addr => $attrs){
+			if( $attrs['avg_signal_strength_this_dev']<$min ){
+				$min = $attrs['avg_signal_strength_this_dev'];
+				$hw_min = $hw_addr;
+			}
+		}
+		array_push($ret,$hw_addr);
+		unset($dup[$hw_addr]);	
+		$num--;
+	}
+	return $ret;
+}
+
+
+
+/*
+ * Params: 
+ * 	$channels = array... (see above)
+ *  $non_ortho = array with the non-overlapping channels
+ *
+ * Returns the total pct of packets 
+ * being exchanged over non-overlapping channels
+ *
+ */ 
+function pct_in_non_ortho($channels,$non_ortho){
+	$sum = 0.0;
+	foreach($channels as $channel => $pct){
+		if( in_array($channel,$non_ortho) ){
+			$sum += $pct;
+		}
+	}
+	return $sum;
+}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	

@@ -73,7 +73,7 @@ $feature2= "<div id=thresholds >
 				(processing packets from devices associated in this wlan)";
 
 if( isset($_POST['submit2']) || isset($_POST['submit3']) ){
-	$ssid = $_POST['ssid'];
+	$ssid = trim($_POST['ssid']);
 	$attrs = $wlans[$ssid];	
 	$wlan_devices = get_wlan_devices( $ssid );
 	# array( hw_addr => hw_addr_res,avg_signal_strength_this_dev )
@@ -89,7 +89,8 @@ if( isset($_POST['submit2']) || isset($_POST['submit3']) ){
 	$avg_sig = round($avg_signal_strength_all_devs,2).' dBm';
 	
 	$channels = get_wlan_channels($ssid);
-	# array( $channel => $pct )
+	# array( $no => $pct )
+	
 		
 	$feature2.="<table>
 					<tr>
@@ -100,7 +101,7 @@ if( isset($_POST['submit2']) || isset($_POST['submit3']) ){
 			 		<tr>
 			 			<td rowspan='4'> </td>
 			 			<td>Supported Rates:</td>
-			 			<td colspan='2' class='data'>$sup_num [Mbit/sec]</td>
+			 			<td colspan='2' class='supp_rates'>$sup_num [Mbit/sec]</td>
 			 		</tr>
 			 		<tr>
 				 		<td>Extended Supported Rates:</td>
@@ -108,7 +109,7 @@ if( isset($_POST['submit2']) || isset($_POST['submit3']) ){
 			 		</tr>
 			 		<tr>
 			 			<td>Average Rate:</td>
-			 			<td colspan='2' class='data'>$avg_rate [Mbit/sec]</td>
+			 			<td colspan='2' class='avg_rate'>$avg_rate [Mbit/sec]</td>
 			 		</tr>
 			 		<tr>
 				 		<td>Average signal strength for wlan:</td>
@@ -122,12 +123,17 @@ if( isset($_POST['submit2']) || isset($_POST['submit3']) ){
 			 		</tr>";
 			 		
 	$count = count($channels);
+	
+	$non_ortho = array(2,3,4,5, 7,8,9,10, 12,13);
+	
 	$i=1;		 		
 	foreach( $channels as $no => $pct ){		 		
 		$feature2.="
 					<tr>"
-						.($i==1 ? "<td colspan='2' rowspan=$count></td>":"")."
-			 			<td class='data-center' >$no</td>
+						.($i==1 ? "<td colspan='2' rowspan=$count></td>":"")
+			 			.( in_array($no,$non_ortho) ? "
+			 			<td class='non_ortho' >$no</td>" : "
+			 			<td class='data-center' >$no </td>")."
 			 			<td class='data-center' >$pct %</td>
 			 		</tr>";
 		$i++;
@@ -141,6 +147,7 @@ if( isset($_POST['submit2']) || isset($_POST['submit3']) ){
 				 		<td>Device's avg. Signal Strength</td> 
 				 	</tr>";
 
+	$lowest_ss = find_devs_with_min_ss($wlan_devices,2);
 	
 	$count = count($wlan_devices);
 	$i=1;
@@ -149,11 +156,15 @@ if( isset($_POST['submit2']) || isset($_POST['submit3']) ){
 		$hw_addr_res = ( $attrs['hw_addr_res'] ? "($attrs[hw_addr_res])" : "" );
 		$dev_sig = round($attrs['avg_signal_strength_this_dev'],2).' dBm';
 		
+		$rev_i = $count-$i+1;
+		
 		$feature2 .="
 					<tr>"
 						.($i==1 ? "<td colspan='2' rowspan=$count></td>":"")."
-						<td class='data-center'>$hw_address $hw_addr_res</td>
-						<td class='data-center'>$dev_sig</td>
+						<td class='rev$rev_i'>$hw_address $hw_addr_res</td>"
+						.( in_array($hw_address,$lowest_ss) ? "
+						<td class='low'>$dev_sig</td>" : "
+						<td class='data-center'>$dev_sig</td>")."
 					</tr>";
 		$i++;			
 	}
@@ -163,7 +174,7 @@ if( isset($_POST['submit2']) || isset($_POST['submit3']) ){
 	$feature2.="<form action='/fcaps/fault.php' method='post'>
 					Type in the WLAN's SSID</br></br>
 					<input type='text' name='ssid' required autocomplete='on'></br>
-					<input type='submit' name='submit2' value='Analyze WLAN'>
+					<input class='button' type='submit' name='submit2' value='Analyze WLAN'>
 				</form>";
 }
 $feature2.="</div>
@@ -176,34 +187,105 @@ $feature3= "<div id=actions >
 				(in the whole ecosystem, including all wlans and devices)";
 
 if( isset($_POST['submit3']) ){
-	//bla
+	$action_hl ='<style>';
+	$feature3 .= '<ol></br>';
+
+/*****		Action1)	(purple strikethrough 2 last devs hw) 
+							low avg.wlan-signal stregth + many devices 
+								=> "Interferance" => Reduce devices */
+	define("SIG_POOR", -60);
+	define("MANY_DEVS", 5);
+	
+	if( count($wlan_devices)>=MANY_DEVS && $avg_sig<=SIG_POOR ){
+		for( $i=1; $i <= count($wlan_devices)-MANY_DEVS+1 ; $i++ ){	
+			$action_hl .= "#thresholds td.rev$i{ color:purple; text-decoration:line-through;}";
+		}
+		
+		$feature3 .= "<li style='color:purple'>
+						Possible interferance in in wlan links. 
+						Reduce the number of devices to increase the avg. signal strenght.
+					  </li></br>";
+					  
+	}
+	
+/****		Action2)	(red bg-color the ss of 2 devs w lowest ss)
+							low signal stregth 
+								=>  "Increase Tx Power",
+					   				"Come closer",
+					   				"Place router centrally"*/					   				
+		$action_hl .= '#thresholds td.low{ 
+							text-align:center;
+							color:black;
+							background-color:crimson;
+						}';
+		
+		$feature3 .= "<li style='color:crimson'>
+						Poor signal strength noticed for the devices highlighted.
+						You can try:</br>
+						<ul style='list-style-type:square;'>
+							<li>Increasing AP's transmitting power</li>
+							<li>Place the AP in a central location</li>
+							<li>Bring the devices closer to the AP</li>
+						</ul>
+					  </li></br>";
+					  
+/****		Action3)	(orange bg-color the non-ortho channel nos)
+							high pct in non-ortho channels
+								=> "Switch channel of flows"*/
+	define("HIGH_PCT", 50);
+	if( pct_in_non_ortho($channels,$non_ortho)>=HIGH_PCT ){
+		$action_hl .= '#thresholds td.non_ortho{
+							text-align:center;
+							color:black;
+							background-color:gold;
+						}';
+						
+		$feature3 .= "<li style='color:gold'>
+						'High volume of traffic flowing through overlapping wifi channels.</br>
+						 Improved rates can be achieved by using the orthogonal, 
+						 non-overlapping channels 1,6 and 11.
+					   </li></br>";
+	}
+
+/****		Action4)	(green color,underline avg_rate, green bg-color sup.rates)
+							avg.rate < avg(sup.rates)
+								=> "Router is capable of providing significally improved rates!" */
+	preg_match_all('!\d+!', $sup_num, $matches);
+	preg_match_all('!\d+!', $ext_sup_num, $ext_matches);
+	foreach($ext_matches[0] as $ext_match){
+		array_push($matches[0], $ext_match);
+	}
+	$avg_of_supp = array_sum($matches[0]) / count($matches[0]);
+	
+	if( $avg_rate <= $avg_of_supp ){
+		$action_hl .= '#thresholds td.avg_rate{
+							color:teal;
+							text-decoration:underline;
+						}';
+						
+		$action_hl .= '#thresholds td.supp_rates{
+							color:black;
+							background-color:teal;
+						}';
+						
+		$feature3 .= "<li style='color:teal'>
+						'The AP is capable of providing significally improved data-rates.</br>
+						 Please review it's settings.
+					   </li></br>";
+	}
+
+
+	$feature3 .= "</ol>";
+	$action_hl .='</style>';
 } else{
 	$feature3.="<form action='/fcaps/fault.php' method='post'>
-					</br><input type='submit' name='submit3' value='Suggest Actions'>
+					</br><input class='button' type='submit' name='submit3' value='Suggest Actions'>
 					<input type='hidden' name='ssid' value='$_POST[ssid]'>
 				</form>";
 }
-$feature2.="</div>
+$feature3.="</div>
 			</br>";
 		
-/* 
-
-INDICATORS AND ACTIONS:
-	1) (color-fade last devs) 
-			low signal stregth + many devices 
-				=> "Interferance" => Reduce devices
-	2) (red highlight the 2 devs w lowest s.s.)
-			low signal stregth 
-				=> "Increase Tx Power",
-				   "Come closer",
-				   "Place router centrally"
-	3) (yellow highlight the channels)
-			high pct in non-ortho channels
-				=> "Switch channel of flows"
-	4) (green highlight avg-rate and sup. rates)
-			avg.rate < median(sup.rates)
-				=> "Router is capable of significally improved rates!" 
-*/		
 		
 /****************************** PUTTING IT TOGETHER **********************/		
 
@@ -223,6 +305,7 @@ $content .=    "</tr>
 			
 			
 $extra_css = "<link rel='stylesheet' type='text/css' href='/fcaps/fault_styles.css'/>";
+$extra_css .= $action_hl;
 include($_SERVER['DOCUMENT_ROOT'].'/theme/base.php');
 
 

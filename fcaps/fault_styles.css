@@ -16,6 +16,10 @@ th.header {
 /*    color: white; */
 }
 
+input.button {
+	margin-top:2px;
+}
+
 #routers_uptime table{
 	border-collapse: collapse;
 	margin-top:4px;
@@ -56,17 +60,30 @@ th.header {
 } 
 
 
-#thresholds td.data-center{
-	color:darkgrey;
+#thresholds td.data-center,
+#thresholds td.rev1,
+#thresholds td.rev2,
+#thresholds td.rev3,
+#thresholds td.rev4,
+#thresholds td.rev5,
+#thresholds td.rev6,
+#thresholds td.rev7,
+#thresholds td.rev8,
+#thresholds td.low,
+#thresholds td.non_ortho{
+	color:rgb(109,109,109);
 	text-align:center;
 }
 
-#thresholds td.data{
-	color:darkgrey;
+#thresholds td.data,
+#thresholds td.avg_rate,
+#thresholds td.supp_rates{
+	color:rgb(109,109,109);
 }
 
 #thresholds td.ssid{
 	color:blue;
 }
+
 
 
