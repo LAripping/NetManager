@@ -16,8 +16,8 @@
         <div id="menu">
         	<ul>
                 <li class="menuitem"><a href="/fcaps/index.php">FCAPS model</a></li>
-                <li class="menuitem"><a href="/wifi/index.php">WiFi Analysis</a></li>
                 <li class="menuitem"><a href="/data/index.php">Captured Data</a></li>
+                <li class="menuitem"><a href="/about/index.php">About</a></li>                
             </ul>
         </div>
 
