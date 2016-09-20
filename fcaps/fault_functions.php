@@ -127,7 +127,8 @@ function get_packet_count(){
  * Returns 
  *	array( 
  *		$ssid => array( 
- *					'supported_rates'	=> $supported_rates
+ *					'bssid'				=> $bssid
+ 					'supported_rates'	=> $supported_rates
  * 					'avg_rate'			=> $avg_rate
  *  			 )
  *	)
@@ -136,7 +137,7 @@ function get_packet_count(){
 function get_wlans(){
 	global $conn; 
 	
-	$q = "	SELECT wlan.ssid, supported_rates, AVG(rate) as avg_rate
+	$q = "	SELECT wlan.ssid, bssid, supported_rates, AVG(rate) as avg_rate
 		 	FROM wlan,packet 
 		 	WHERE wlan.ssid=packet.ssid
 		 	GROUP BY wlan.ssid;";
@@ -146,7 +147,8 @@ function get_wlans(){
 	$ret = array();
 	while( $row = $result->fetch_assoc() ){
 		$ret[ $row['ssid'] ] = 
-			array(	'supported_rates'=> $row['supported_rates'],
+			array(	'bssid'			 => $row['bssid'],
+					'supported_rates'=> $row['supported_rates'],
 					'avg_rate' 		 => $row['avg_rate'] );
 	}
 	

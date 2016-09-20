@@ -27,7 +27,9 @@ $content = '<h2> Credits </h2>
 					<li>is the hard work of Leonidas Tsaousis</li>
 					<li>email: <a href="mailto:sd1200184@di.uoa.gr">
 						sd1200184@di.uoa.gr</a> </li>
-					<li>The whole development process can be verified with a look at my</li>
+					<li>The whole development process can be verified 
+					</br>with a look at the projects remote repository on github. 
+					</br>Just click on the avatar! &#187</li>
 						<img style="position:absolute;left:750px;top:300px;width:150px;" 
 							 src="https://avatars0.githubusercontent.com/u/19598145?v=3&s=466">					
 					<a href="https://github.com/LAripping" style="background-image:https://avatars0.githubusercontent.com/u/19598145?v=3&s=466">

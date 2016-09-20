@@ -112,8 +112,9 @@ function insert_packet( $fields,$count,$in_id ){
     $non_packet = array('bssid','supported_rates', 'encryption','is_router');
     foreach($fields as $key => $value){
         if( in_array($key,$non_packet) 
-        	|| strstr($key,'DEVICE'
-        	|| $fields[$key]=='')){
+        	|| strstr($key,'DEVICE')
+        	|| $value=='' 
+        ){
             error_log("Skipping update for field $key...\n",3,$logfile);
             continue;
         }

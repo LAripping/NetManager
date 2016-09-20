@@ -289,7 +289,7 @@ $feature3.="</div>
 		
 /****************************** PUTTING IT TOGETHER **********************/		
 
-$content = "<table style='margin-left:0px;background-color:white;'>";
+$content = "<table style='margin-left:0px;'>";
 if( isset($_POST['submit2'])||isset($_POST['submit3']) ) $content.="
 				<tr style='height:0%;'>";
 else $content.="<tr>";
