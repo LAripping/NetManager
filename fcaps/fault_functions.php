@@ -339,13 +339,14 @@ function find_devs_with_min_ss($wlan_devices, $num){
 		$hw_min = '';
 	
 		foreach($dup as $hw_addr => $attrs){
-			if( $attrs['avg_signal_strength_this_dev']<$min ){
+			if( $attrs['avg_signal_strength_this_dev'] 
+			&& $attrs['avg_signal_strength_this_dev']<$min ){
 				$min = $attrs['avg_signal_strength_this_dev'];
 				$hw_min = $hw_addr;
 			}
 		}
-		array_push($ret,$hw_addr);
-		unset($dup[$hw_addr]);	
+		array_push($ret,$hw_min);
+		unset($dup[$hw_min]);	
 		$num--;
 	}
 	return $ret;
