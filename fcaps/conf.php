@@ -30,10 +30,10 @@ $feature1= "<div id=channels >
 				(percentage of packets captured for every channel in the EU band)
 				<table>
 			 		<tr>
-			 			<th class=header>Channel No.</th>
-			 			<th class=header>Frequency</th>			 			
-			 			<th class=header style='width:279px;'> </th>
-			 			<th class=header>Percentage</th>
+			 			<th class=header style='width:50px;'>Channel No.</th>
+			 			<th class=header style='width:60px;'>Frequency</th>			 			
+			 			<th class=header style='width:280px;'> </th>
+			 			<th class=header style='width:65px;'>Percentage</th>
 			 		</tr>";
 			 		
 $ortho = array('1','6','11');
@@ -65,10 +65,9 @@ $feature2= "<div id=protocols >
 				(...and how often each one occurs among the total packets captured)
 				<table>
 			 		<tr>
-			 			<th class=header>Protocol name</th>
-			 			<th class=header>Occurences</th>			 			
-			 			<th class=header style='width:200px;'> </th>
-			 			<th class=header>Percentage</th>
+			 			<th class=header style='width:100px;'>Protocol name</th>
+			 			<th class=header style='width:130px;'>Occurences</th>			 			
+			 			<th class=header style='width:240px;'> </th>
 			 		</tr>";
 			 		
 $total = array_sum( $protocols );
@@ -83,7 +82,6 @@ foreach( $protocols as $name => $count ){
 							<div class=bar style='width:{$width}px;'>
 							</div>
 						</td>
-						<td>$pct %</td>
 					 <tr/>";
 }
 unset($pct);
@@ -115,7 +113,7 @@ $wlans = get_wlans();
 $feature3_pre.="
 				<form action='/fcaps/conf.php' method='get'>
 					Select a WLAN to examine it's configuration</br>
-					<select name='ssid' multiple>";
+					<select name='ssid' multiple size=10>";
 foreach( $wlans as $ssid => $attrs){
 	$feature3_pre.="	<option value='$ssid'>$ssid</option>";
 }
@@ -123,12 +121,14 @@ foreach( $wlans as $ssid => $attrs){
 $feature3_pre.="	</select>
 					</br>
 					<input class='button' type='submit' name='submit' value='Analyze WLAN'>
+					</br></br>
+					<p class=tip> TIP: Start typing the SSID you want...</p>
 				</form>
 			</div>
 		</br>";
 
-
-if( isset($_POST['submit'])  ){
+$feature3 = '';
+if( isset($_GET['submit'])  ){
 	$ssid = $_GET['ssid'];
 	$attrs = $wlans[$ssid];	
 	
@@ -136,44 +136,53 @@ if( isset($_POST['submit'])  ){
 			<div id=topology>
 				<table>
 					<tr>
-			 			<th rowspan='3' colspan='3' class=header>WLAN selected</th>
+			 			<th class=header colspan=3>WLAN selected</th>
 			 		</tr>
 			 		<tr>
 			 			<td>SSID</td>
-			 			<td class='ssid'> $ssid</td>
+			 			<td class='ssid' colspan=2> $ssid</td>
 			 		</tr>
 			 		<tr>
 			 			<td>BSSID</td>
-			 			<td class='ssid'>$attrs[bssid]</td>
+			 			<td colspan=2>$attrs[bssid]</td>
 			 		</tr>";
 		
-		$wlan_devices = get_wlan_devices( $ssid );	 	
+		$wlan_devices = get_wlan_devices( $ssid );	
+		unset($wlan_devices['sum']); 	
 		$count = count($wlan_devices);
 		$i =1;	
 		foreach( $wlan_devices as $hw_addr => $attrs ){
-			$ip = get_device_ip( $hw_addr )		#TODO 
+			$attrs = get_device_ip( $hw_addr );
+			$ip = $attrs['ip'];
+			$router = $attrs['is_router'];
 			
 			$feature3.="
 			 		<tr>
-				 		<th rowspan=4 colspan=2> Device:</th>
+				 		<th class=subheader colspan=3> Device #$i:</th>
+				 	</tr>
+				 	<tr>
+				 		<td ".($router ? "class=router>ROUTER" : ">")."</td>
 						<td>IP address</td>
 						<td>$ip</td>
 					</tr>
 					<tr>
+						<td></td>
 						<td>MAC address</td>
-						<td>$hw_address</td>
+						<td>$hw_addr</td>
 					</tr>
 					<tr>
+						<td></td>
 						<td>Resolved address</td>
-						<td>$hw_addr_res</td>
+						<td>$attrs[hw_addr_res]</td>
 					</tr>";
 			$i++;	
 		}
+
 		
 $feature3.="	</table>
 			</div>
 		</br>";	 		
-
+}
 
 
 
@@ -184,13 +193,13 @@ $feature3.="	</table>
 /****************************** PUTTING IT TOGETHER **********************/		
 
 $content = "<table>
-				<tr>
+				<tr style='vertical-align:top;'>
 					<td style='border:none;margin-left:0px;'> $feature1 </td>
-					<td style='border:none;'> $feature3_pre </td>					
+					<td style='border:none;'> $feature3_pre </td>
 				</tr>
-				<tr style='height:auto;'>
+				<tr style='vertical-align:top;'>
 					<td style='border:none;'> $feature2 </td>
-					<td style='border:none;'> $feature3 </td>					
+					<td style='border:none;padding-top:2.4em;'> $feature3 </td>					
 				</tr>
 			</table>";
 			

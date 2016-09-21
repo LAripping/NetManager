@@ -98,4 +98,30 @@ function get_protocols(){
 
 
 
+function get_device_ip( $hw_addr ){
+	global $conn; 
+	
+	$protocols = array();
+	
+	# Get all different protocols in an array 
+	$q = "	SELECT ip_address,is_router
+			FROM device
+			WHERE hw_address='$hw_addr';";
+			
+	if(! $result = $conn->query($q) )	die("$conn->error");
+	$ret = array();
+	while( $row = $result->fetch_assoc() ){
+		$ret['ip_address'] = $row['ip_address'];
+		$ret['is_router'] = $row['is_router'];
+	}
+	$result->free();
+	
+	return $ret;
+}
+
+
+
+
+
+
 
