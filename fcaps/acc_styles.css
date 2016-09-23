@@ -1,0 +1,52 @@
+
+
+
+#flows th,td,
+#utilization th,td {
+	border:1px solid black;
+    margin-left:0;
+    padding-right:5px;
+    padding-left:2px;
+}
+
+th.header 	{	background-color: lightblue; }
+th.subheader{ 	
+	background-color: mediumaquamarine; 
+}
+th.cost 	{	
+	background-color: purple;
+	color: white;
+}
+
+input.button {
+	margin-top:2px;
+	width:80px;
+}
+
+#utilization table,
+#flows table{
+	border-collapse: collapse;
+	margin-top:4px;
+	font-size:12px;
+} 
+
+#utilization table{
+	margin-left:0;
+}
+
+#utilization tr:hover,
+#flows tr:hover{
+	background-color: #f5f5f5
+}
+
+#utilization p,
+#flows p,
+#calculate p{
+	text-decoration:underline;
+}
+
+.tip{
+	text-decoration:none;
+	color:blue;
+}
+

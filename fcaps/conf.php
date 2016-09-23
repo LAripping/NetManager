@@ -91,17 +91,7 @@ $feature2 .= "	</table>
 			
 			
 /******************************** FEATURE 3 ******************************/			
-/*Topology Viewer:
 
-	Select WLAN > 
-		SSID + BSSID
-		List Dev's conf:
-		- HW addr
-		- HW addr resolved
-		- IP addr
-		(- style if is_router)
-		Supported rates
-*/	
 
 $feature3_pre= "
 			<div id=topology>
@@ -192,7 +182,7 @@ $feature3.="	</table>
 			 
 /****************************** PUTTING IT TOGETHER **********************/		
 
-$content = "<table>
+$content .= "<table>
 				<tr style='vertical-align:top;'>
 					<td style='border:none;margin-left:0px;'> $feature1 </td>
 					<td style='border:none;'> $feature3_pre </td>
