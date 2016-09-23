@@ -41,11 +41,11 @@ $feature1= "<div id=utilization style='width:450px;'>
 # TODO Show legend
 
 $plans=array(
-	#	 name		=>	array( color,base_cost )
-		'regular'	=>	array( 'brown',100 ),
-		'silver'	=>	array( 'silver',200 ),
-		'gold'		=>	array( 'gold',300 ),
-		'diamond'	=>	array( 'turquoise',400 )
+   		#level => array( name, color,base_cost)
+		1 => array( 'regular','brown',200 ),
+		2 => array( 'silver','silver',500 ),
+		3 => array( 'gold','gold',1000 ),
+		4 => array( 'diamond','turquoise',10000 )
 	);
 
 $show = isset( $_POST['submit'] );
@@ -70,14 +70,15 @@ foreach( $device_packet as $hw_addr => $dev_attrs ){
 	
 	#calculate cost and plan
 	$dev_cost = calculate_cost($hw_addr,$euro_per_MB);
-	foreach($plans as $plan_name => $plan_attrs){
-		if($dev_cost<$plan_attrs[1]){
-			$dev_plan = $plan_name;
+	$dev_plan = 0;
+	foreach($plans as $level => $plan_attrs){
+		if($dev_cost<$plan_attrs[2]){
+			$dev_plan = $level;
 			break;
 		}
 	}
+	if(! $dev_plan ) $dev_plan=4;
 	
-	#	style='color:$dev_plan[]'
 	$feature1 .= "	<tr>
 						<td>$hw_addr</td>
 						<td>$dev_attrs[ssid]</td>
@@ -86,9 +87,9 @@ foreach( $device_packet as $hw_addr => $dev_attrs ){
 						<td>$dev_cost</td>
 						<td style= 'color:white;
 									font-weight:bold;
-									background-color:{$plans[$dev_plan][0]};
+									background-color:{$plans[$dev_plan][1]};
 									text-align:center;'>
-							$dev_plan
+							{$plans[$dev_plan][0]}
 						</td>
 				" : "
 						<td></td>
@@ -163,13 +164,13 @@ if( isset( $_POST['submit'] ) ){
 						<th>Cost</th>
 					</tr>";
 					
-	foreach( $plans as $plan_name => $attrs){
+	foreach( $plans as $level => $attrs){
 		$feature3.="<tr style= 'color:white;
 								font-weight:bold;
-								background-color:{$attrs[0]};
+								background-color:{$attrs[1]};
 								text-align:center;'>
-						<td>$plan_name</td>
-						<td>{$attrs[1]} €</td>
+						<td>{$attrs[0]}</td>
+						<td>{$attrs[2]} €</td>
 					</tr>";
 	}
 	$feature3.="</table>";
