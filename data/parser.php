@@ -139,6 +139,11 @@ function fill_fields($parser,$element_name,$element_attrs){
                     $fields['tcp_lost_prev_segment'] = True;
                     error_log("--detected lost previous segment",3,$logfile);
                     break;
+                    
+                case "tcp.analysis.bytes_in_flight":
+                    $fields['tcp_bytes_in_flight'] = $element_attrs['SHOW'];
+                    error_log("--tcp bytes in flight: $fields[tcp_bytes_in_flight]\n",3,$logfile);
+                    break;
 
                 //HTTP fields
                 case "http.time":
