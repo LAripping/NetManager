@@ -19,6 +19,7 @@ th.cost 	{
 }
 
 input.button {
+	margin-left:1px;
 	margin-top:2px;
 	width:80px;
 }

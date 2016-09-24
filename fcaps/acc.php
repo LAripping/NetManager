@@ -38,14 +38,24 @@ $feature1= "<div id=utilization style='width:450px;'>
 			 			<th class=cost>Plan</th>			 			
 			 		</tr>";
 			 		
-# TODO Show legend
+if(! isset($_POST['submit']) ){
+	$lim1 = 200;
+	$lim2 = 500;
+	$lim3 = 1000;
+	$lim4 = 10000;
+} else{
+	$lim1 = $_POST['lim1'];
+	$lim2 = $_POST['lim2'];
+	$lim3 = $_POST['lim3'];
+	$lim4 = $_POST['lim4'];
+}
 
 $plans=array(
    		#level => array( name, color,base_cost)
-		1 => array( 'regular','brown',200 ),
-		2 => array( 'silver','silver',500 ),
-		3 => array( 'gold','gold',1000 ),
-		4 => array( 'diamond','turquoise',10000 )
+		1 => array( 'regular','brown',$lim1 ),
+		2 => array( 'silver','silver',$lim2 ),
+		3 => array( 'gold','gold',$lim3 ),
+		4 => array( 'diamond','turquoise',$lim4 )
 	);
 
 $show = isset( $_POST['submit'] );
@@ -138,7 +148,7 @@ $feature2 .= "	</table>
 			
 /******************************** FEATURE 3 ******************************/
 $feature3 ="
-			 <div id=calculate>
+			<div id=calculate>
 				<p>3.Calculate billing policy</p>
 				(sum each device's cost and suggest plans)
 				</br></br>
@@ -148,47 +158,56 @@ $feature3 ="
 						min='0.01' placeholder='0.50'".
 						( isset($_POST['submit']) ? "
 						value=$euro_per_MB" : "" )."  
-						style='width:50px;'> € </br>
+						style='width:50px;'> € ";
+								
+								
+$feature3.="		</br>
+					</br>Define the costs that divide the plans:
+					<table id=plans style='margin-left:0;'>
+						<tr>
+							<th>Plan name</th>
+							<th>Cost Limit</th>
+						</tr>";
+		
+
+					
+foreach( $plans as $level => $attrs){
+	$feature3.="		<tr style= 'color:white;
+									font-weight:bold;
+									background-color:{$attrs[1]};
+									text-align:center;'>
+							<td style='width:70px;'>{$attrs[0]}</td>
+							<td >
+								<input 	style='width:58px;'
+										type='number' step='10' min='100'
+									 	name='lim$level' ".( isset($_POST["lim$level"]) ? "
+									 	value='" : "
+									 	placeholder='")."{$attrs[2]}'> €
+							</td>
+						</tr>";
+}
+$feature3.="		</table>
+					</br>
 					<input class='button' type='submit' 
 						name='submit' value='Calculate'>
 					<input class='button' type='submit' 
 						onclick='location.href=$_SERVER[PHP_SELF]'
 						value='Reset'>	
-				</form>";
-								
-if( isset( $_POST['submit'] ) ){
-	$feature3.="</br></br>Plans have the following cost threshold:
-				<table id=plans>
-					<tr>
-						<th>Plan name</th>
-						<th>Cost</th>
-					</tr>";
-					
-	foreach( $plans as $level => $attrs){
-		$feature3.="<tr style= 'color:white;
-								font-weight:bold;
-								background-color:{$attrs[1]};
-								text-align:center;'>
-						<td>{$attrs[0]}</td>
-						<td>{$attrs[2]} €</td>
-					</tr>";
-	}
-	$feature3.="</table>";
-	
-}		
-		
-$feature3 .="</div>";			 
+				</form>
+			</div>";			 
 			 
 			 
 /****************************** PUTTING IT TOGETHER **********************/		
 $content .= "<table>
 				<tr style='vertical-align:top;'>
-					<td id=upleft rowspan=2 style='border:none;margin-left:0px;padding-right:15px;'> $feature1 </td>
+					<td style='	border:none;
+								margin-left:0;
+								padding-right:15px;' rowspan=2 > $feature1 </td>
 					<td style='border:none;'> $feature2 </td>
 				</tr>
 				<tr style='vertical-align:top;'>
 					
-					<td style='border:none;'> $feature3 </td>
+					<td style=' border:none;'> $feature3 </td>
 				
 				</tr>
 			</table>";
