@@ -1,22 +1,6 @@
 <?php
 
 
-
-/*
-Accounting/Administration Management:
-	1.Network Utilization / traffic volume: #ofpackets per device (non routers - show ssid)
-	2.Flows: IP source-dest pairs (#of packets)
-	3.Service Usage: port source-dest pairs +click-resolve via IANA)
-	(Tsaou only=no other has IPs ports captured)
-
-4. (Action:) Billing: Give price (€ - slider) per MB and 
-		-calculate cost (packets x size x price)
-		-calculate (& highlight rows) by suggesting 'plans' 
-		=> regular,silver,gold,platinum
-*/
-
-
-
 include($_SERVER['DOCUMENT_ROOT'].'/fcaps/sidebar.php');
 include($_SERVER['DOCUMENT_ROOT'].'/fcaps/acc_functions.php');
 

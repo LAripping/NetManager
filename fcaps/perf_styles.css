@@ -1,0 +1,16 @@
+.bar {
+    display: block;
+    width: 7px;
+    height: 1.3em;
+    margin-left: 0px;
+    background-color: orange;
+}
+
+th.header{	
+	background-color: lightblue;
+}
+th.subheader{ 	
+	background-color: mediumaquamarine; 
+}
+
+
