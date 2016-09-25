@@ -304,11 +304,18 @@ function insert_rest( $fields,$count ){
 			} 
 		} else {							# Insert the broadcast pseudo-devide 
 			if(! $broadcast_inserted ){		# once, to avoid FK constraints' errors
-				$q = "	INSERT INTO device(hw_address)
-						VALUES('ff:ff:ff:ff:ff:ff')";
-	
+				$q = "SELECT count(*) AS c FROM device WHERE hw_address='ff:ff:ff:ff:ff:ff'";
 				if(! $result = $conn->query($q) )	die("$conn->error");
-				$broadcast_inserted = True;
+				while( $row = $result->fetch_assoc() ){
+					if( $row['c']>0 ) $broadcast_inserted = True;
+				}
+				$result->free();
+				if( !$broadcast_inserted){ 
+					$q = "	INSERT INTO device(hw_address)
+							VALUES('ff:ff:ff:ff:ff:ff')";	
+					if(! $result = $conn->query($q) )	die("$conn->error");
+					$broadcast_inserted = True;
+				}
 			}
 		}
 	}
