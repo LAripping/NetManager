@@ -42,9 +42,9 @@ global $conn;
 function find_mins_maxes( $a ){
 	$cols = count($a[0]);
 	$mins = array(); 
-	for($i=1; $i<=$cols; $i++) $mins[$i] = 1000000;
+	for($i=0; $i<$cols; $i++) $mins[$i] = 1000000;
 	$maxes = array(); 
-	for($i=1; $i<=$cols; $i++) $maxes[$i] = -1;
+	for($i=0; $i<$cols; $i++) $maxes[$i] = -1;
 
 	foreach( $a as $i => $row ){
 		foreach( $row as $j => $col_val ){
@@ -66,13 +66,13 @@ function get_http_response_times(){
 	$ret = array();
 	
 	$q = "	SELECT 
-				DISTINCT FROM_UNIX(time_captured, '%d/%m %h:%i%:%s')
-					AS timestamp
+				DISTINCT FROM_UNIXTIME(time_captured, '%d/%m %h:%i%:%s')
+					AS timestamp,
 				TRUNCATE(http_response_dt*1000,2)
 					AS delay_ms
 			FROM packet
 			WHERE http_response_dt IS NOT NULL
-			ODER BY time_captured ASC;";
+			ORDER BY time_captured ASC;";
 			
 	if(! $result = $conn->query($q) ) die("$conn->error");
 	
@@ -90,24 +90,24 @@ function get_http_response_times(){
 /*
 array( 
 	[0] => array(
-			[1] => $glob_avg_rate,
-			[2] => $glob_throughput_avg,
-			[3] => $glob_throughput_peak_avg
+			[0] => $glob_avg_rate,
+			[1] => $glob_throughput_avg,
+			[2] => $glob_throughput_peak_avg
 	)
 	
 	[1] => array(
-			[1] => $src_hw,
-			[2] => $dst_hw, 
-			[3] => $avg_rate,
-			[4] => $throughput_avg,      
-			[5] => $throughput_peak
+			[0] => $src_hw,
+			[1] => $dst_hw, 
+			[2] => $avg_rate,
+			[3] => $throughput_avg,      
+			[4] => $throughput_peak
 	 )
 	[2] => array(
-			[1] => $src_hw,
-			[2] => $dst_hw,
-			[3] => $avg_rate,
-			[4] => $throughput_avg,      
-			[5] => $throughput_peak
+			[0] => $src_hw,
+			[1] => $dst_hw,
+			[2] => $avg_rate,
+			[3] => $throughput_avg,      
+			[4] => $throughput_peak
 	 )
 	...
 )
@@ -147,9 +147,9 @@ function get_link_stats(){
 	
 	$result->free();
 	
-	$ret[0][1] = $sum_rate / (count($ret)-1);
-	$ret[0][2] = $sum_through_avg  / (count($ret)-1);
-	$ret[0][3] = $sum_through_peak / (count($ret)-1);		
+	$ret[0][0] = $sum_rate / (count($ret)-1);
+	$ret[0][1] = $sum_through_avg  / (count($ret)-1);
+	$ret[0][2] = $sum_through_peak / (count($ret)-1);		
 		
 	return $ret;
 }
@@ -167,7 +167,7 @@ function get_oldest_time(){
 						MIN(time_captured),
 						'%Y-%m-%dT%h:%i'
 					) AS oldest
-			FROM PACKET;";
+			FROM packet;";
 					
 	if(! $result = $conn->query($q) ) die("$conn->error");
 	
@@ -188,7 +188,7 @@ function get_recent_time(){
 						MAX(time_captured),
 						'%Y-%m-%dT%h:%i'
 					) AS recent
-			FROM PACKET;";
+			FROM packet;";
 					
 	if(! $result = $conn->query($q) ) die("$conn->error");
 	

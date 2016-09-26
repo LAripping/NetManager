@@ -45,7 +45,7 @@ $feature1= "<div id=load>
 				<form action='/fcaps/perf.php' method='post'>
 					<p>1.Traffic load</p>
 					(sum the size of all packets exchanged within a given time reange)
-					<table>
+					<table class=align-left>
 				 		<tr>
 				 			<th>Cumulative traffic captured:</th>
 				 			<td>
@@ -120,12 +120,12 @@ array(
 $feature2= "<div id=flows >
 				<p>2.Link Speeds</p>
 				(measure the performance of each link)
-				</br>
+				</br></br>
 				Legend:
-				<p syle='background-color:red'> Minimum value observed </p>
-				<p syle='background-color:green'> Maximum value observed</p>
-				</br>
-				<table>
+				<p class=legend style='background-color:red;text-decoration:none;width:100px;display:inline'> Minimum value observed </p> 
+				<p style='background-color:green;text-decoration:none;width:100px;display:inline'> Maximum value observed</p>
+				</br></br>
+				<table class=align-left>
 			 		<tr>
 			 			<th class=subheader>Link no.</th>
 			 			<th class=header>Source MAC</th>
@@ -136,11 +136,11 @@ $feature2= "<div id=flows >
 			 		</tr>
 			 		<tr>
 			 			<th>0</th>
-			 			<th>Global avg./th>
+			 			<th>Global avg.</th>
 			 			<th>Global avg.</th>			 			
-			 			<th>{$link_stats[0][1]}</th>		
-			 			<th>{$link_stats[0][2]}</th>
-			 			<th>{$link_stats[0][3]}</th>	 			
+			 			<th>{$link_stats[0][0]} Mbps</th>		
+			 			<th>{$link_stats[0][1]} Bytes</th>
+			 			<th>{$link_stats[0][2]} Bytes</th>	 			
 			 		</tr>";
 
 unset( $link_stats[0] );
@@ -154,20 +154,20 @@ $mins_maxes = find_mins_maxes($link_stats);
 foreach( $link_stats as $i => $l ){
 	$feature2 .= "	<tr>
 						<td>$i</td>
+						<td>{$l[0]}</td>
 						<td>{$l[1]}</td>
-						<td>{$l[2]}</td>
 						<td"
-						.( $l[3]==$mins_maxes[1][3] ? " $min_style" : "")
-						.( $l[3]==$mins_maxes[2][3] ? " $max_style" : "")."					
+						.( $l[2]==$mins_maxes[0][2] ? " $min_style" : "")
+						.( $l[2]==$mins_maxes[1][2] ? " $max_style" : "")."					
 						>{$l[3]} Mbps</td>
 						<td"
-						.( $l[4]==$mins_maxes[1][4] ? " $min_style" : "")
-						.( $l[4]==$mins_maxes[2][4] ? " $max_style" : "")."							
+						.( $l[3]==$mins_maxes[0][3] ? " $min_style" : "")
+						.( $l[3]==$mins_maxes[1][3] ? " $max_style" : "")."							
 						>{$l[4]} Bytes</td>
 						<td"
-						.( $l[5]==$mins_maxes[1][5] ? " $min_style" : "")
-						.( $l[5]==$mins_maxes[2][5] ? " $max_style" : "")."	
-						>{$l[5]} Bytes</td>						
+						.( $l[4]==$mins_maxes[0][3] ? " $min_style" : "")
+						.( $l[4]==$mins_maxes[1][3] ? " $max_style" : "")."	
+						>{$l[4]} Bytes</td>						
 					 </tr>";
 }
 $feature2 .= "	</table>
@@ -181,34 +181,39 @@ $resp_times = get_http_response_times();
 $timestamps = array();
 $delays = array();
 foreach( $resp_times as $row){
-	array_push($timestamps,$row[1];
-	array_push($delays,$row[2]);
+	array_push($timestamps,$row[0]);
+	array_push($delays,$row[1]);
 }
+
+
 $min_x = min($timestamps);
 $max_x = max($timestamps);
 $min_y = min($delays);	#~30 ms
 $max_y = max($delays);	#~600 ms
-$step = 30 #ms
+$step = 30; #ms
+
 
 $feature3= "<div id=resp_dt >
 				<p>3.HTTP response times</p>
 				(track the variance of http response delays)
 
-				<table>
+				<table class=align-left>
 					<tr>";
 
 
-foreach( $resp_times as $row){
-$feature3.="			<td>
-							<table>
+$i=0;
+foreach( $resp_times as $row){	
+	if($i++>200) break;
+	$feature3.="		<td class=cols>
+							<table class=cols_container>
 								<tbody>";
-	for( $h=$min_y; :$h++ ){
+	for( $h=$min_y; ;$h+=$step ){
 		$feature3 .= "				<tr>
-										<td>
+										<td class=around_div>
 											<div class=bar></div>
 										</td>
 									</tr>";
-		if( $row[2]>=$h )	break;
+		if( $h>=$row[1] )	break;
 	}
 	$feature3.="				</tbody>
 							</table>
@@ -221,11 +226,13 @@ $feature3.="		</tr>
 /****************************** PUTTING IT TOGETHER **********************/		
 $content .= "<table>
 				<tr>
-					<td> $feature1 </td>
-					<td> $feature2 </td>
+					<td class=allin> $feature1 </td>
 				</tr>
 				<tr>
-					<td> $feature3 </td>
+					<td class=allin> $feature2 </td>
+				</tr>
+				<tr>
+					<td class=allin colspan=2> $feature3 </td>
 				</tr>
 			</table>";
 			
