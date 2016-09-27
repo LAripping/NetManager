@@ -13,6 +13,12 @@ $content = "
 		<a href='http://www.di.uoa.gr'>Department of Informatics and 
 		Telecommunications (DIT)</a> of the University of Athens (UOA). </p>
     </br>
+    	<p>For a walkthrough of the application, feel free to peek at the 
+    	presentation created to demonstrate the course project by visiting 
+    	the <a href='/about/intro.php'>Intro</a> page. Google slides was 
+    	used, but an PDF version is also available in the project's github 
+    	repository (see next paragraph).</p>
+    </br>
     	<p>The source code is open for contributions. For more information on 
     	how you can contribute, please visit the <a href='/about/credits.php'>
     	Credits</a> page.</p>
