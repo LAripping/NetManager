@@ -31,7 +31,9 @@ $content = '<h3>Performance Management</h3></br>';
 
 $capt_start = get_oldest_time(); 
 $capt_end	= get_recent_time(); 
+
 $global_traffic = get_traffic_in_range( $capt_start,$capt_end );
+echo "traffic: $global_traffic";
 
 if( isset($_POST['submit']) ){
 	$given_start=$_POST['start'];
@@ -118,12 +120,12 @@ array(
 */
 
 $feature2= "<div id=flows >
-				<p>2.Link Speeds</p>
+				<p style='text-decoration:underline;'>2.Link Speeds</p>
 				(measure the performance of each link)
 				</br></br>
 				Legend:
-				<p class=legend style='background-color:red;text-decoration:none;width:100px;display:inline'> Minimum value observed </p> 
-				<p style='background-color:green;text-decoration:none;width:100px;display:inline'> Maximum value observed</p>
+				<p class=legend style='background-color:red;'> Minimum value observed </p> 
+				<p class=legend style='background-color:green;'> Maximum value observed</p>
 				</br></br>
 				<table class=align-left>
 			 		<tr>
