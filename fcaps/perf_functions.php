@@ -40,7 +40,9 @@ global $conn;
  *
  */
 function find_mins_maxes( $a ){
-	$cols = count($a[0]);
+	$cols = count($a[1]);
+	$c = count($a);
+
 	$mins = array(); 
 	for($i=0; $i<$cols; $i++) $mins[$i] = 1000000;
 	$maxes = array(); 
@@ -48,8 +50,8 @@ function find_mins_maxes( $a ){
 
 	foreach( $a as $i => $row ){
 		foreach( $row as $j => $col_val ){
-			if( $col_val < $mins[$j]  )	$mins[$j]  = $col_val;
-			if( $col_val > $maxes[$j] )	$maxes[$j] = $col_val;
+			if( ($col_val < $mins[$j]) && $col_val  )	$mins[$j]  = $col_val;
+			if( ($col_val > $maxes[$j]) && $col_val )	$maxes[$j] = $col_val;
 		}
 	}			
 		

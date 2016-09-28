@@ -165,12 +165,11 @@ $feature2= "<div id=flows >
 
 unset( $link_stats[0] );
 
-$max_style = "style='background color:green'";
+$max_style = "style='background-color:green'";
 $min_style = "style='background-color:red'";
 
 
 $mins_maxes = find_mins_maxes($link_stats);
-
 foreach( $link_stats as $i => $l ){
 	$feature2 .= "	<tr>
 						<td>$i</td>
@@ -179,14 +178,14 @@ foreach( $link_stats as $i => $l ){
 						<td"
 						.( $l[2]==$mins_maxes[0][2] ? " $min_style" : "")
 						.( $l[2]==$mins_maxes[1][2] ? " $max_style" : "")."					
-						>{$l[3]} Mbps</td>
+						>{$l[2]} Mbps</td>
 						<td"
 						.( $l[3]==$mins_maxes[0][3] ? " $min_style" : "")
 						.( $l[3]==$mins_maxes[1][3] ? " $max_style" : "")."							
-						>{$l[4]} Bytes</td>
+						>{$l[3]} Bytes</td>
 						<td"
-						.( $l[4]==$mins_maxes[0][3] ? " $min_style" : "")
-						.( $l[4]==$mins_maxes[1][3] ? " $max_style" : "")."	
+						.( $l[4]==$mins_maxes[0][4] ? " $min_style" : "")
+						.( $l[4]==$mins_maxes[1][4] ? " $max_style" : "")."	
 						>{$l[4]} Bytes</td>						
 					 </tr>";
 }
@@ -222,7 +221,7 @@ $feature3= "<div id=resp_dt >
 						<td class=y_axis
 							style='vertical-align:top;'>$max_y ms
 						</td>
-						<td rowspan=2 class=border-bottom>
+						<td rowspan=2 class=border>
 							<table>";
 
 $i=0;

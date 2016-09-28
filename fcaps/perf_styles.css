@@ -33,13 +33,13 @@ td.y_axis{
 	height:auto;
 	text-align:right;
 	white-space:nowrap;
-	border-right:3px solid blue;
 	color:blue;
 	margin-right:3px;
 }
 
-td.border-bottom{
+td.border{
 	border-bottom:3px solid blue;
+	border-left:3px solid blue;
 }
 
 td.pad{
