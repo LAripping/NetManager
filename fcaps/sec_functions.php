@@ -20,51 +20,35 @@ function get_encryption_of_wlans(){
 
 	
 	$wlans = array();
-	$q = "	SELECT ssid
+	$q = "	SELECT ssid,encryption
 			FROM wlan;";
 	if(! $result = $conn->query($q) ) die("$conn->error");
 	while( $row = $result->fetch_assoc() ){
 		$wlan_attrs = array();
-		array_push( $wlan_attrs, $row['ssid']);
+		$wlan_attrs['ssid'] = $row['ssid'];
+		$wlan_attrs['enc'] = $row['encryption'];
 		array_push( $wlans,$wlan_attrs );
 	}
 	$result->free();
 
 	foreach($wlans as $i => $wlan_attrs){
-		echo "wlan $i";
-		$q = "	SELECT DISTINCT hw_address AS hw
-				FROM device
-				WHERE wlan_assoc='$wlan_attrs[0]'
-					UNION
-				SELECT DISTINCT source_hw_address AS hw
-				FROM packet
-				WHERE ssid='$wlan_attrs[0]';";			
-		if(! $result = $conn->query($q) ) die("$conn->error");
-		$cnt = 0;
-		while( $row = $result->fetch_assoc() ){
-			$cnt++;
-		}
-		$result->free();	
-		$wlans[$i][2]=$cnt;
-				echo "between";
-		$q = "	SELECT count(*) as c
-				FROM packet
-				WHERE source_hw_address IN(
-					SELECT DISTINCT hw_address AS hw
-					FROM device
-					WHERE wlan_assoc='$wlan_attrs[0]'
-						UNION
-					SELECT DISTINCT source_hw_address AS hw
-					FROM packet
-					WHERE ssid='$wlan_attrs[0]'
+		$q = "	SELECT 	COUNT(DISTINCT p.id) AS cp, 
+						COUNT(DISTINCT d.hw_address) AS cd 
+				FROM packet p, device d
+				WHERE p.source_hw_address = d.hw_address
+				AND (
+					d.wlan_assoc='$wlan_attrs[ssid]'
+					OR p.ssid='$wlan_attrs[ssid]'
 				);";			
 		if(! $result = $conn->query($q) ) die("$conn->error");
 		while( $row = $result->fetch_assoc() ){
-			$wlans[$i][1]=$row['c'];
+			$wlans[$i]['p_cnt']=$row['cp'];
+			$wlans[$i]['d_cnt']=$row['cd'];
 		}
 		$result->free();
-		echo "after";
 	}
+	
+	return $wlans;
 }
 
 

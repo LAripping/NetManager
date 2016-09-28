@@ -44,20 +44,22 @@ $feature1= "<div id=enctypes >
 			 			<th class=header>Total packets</th>
 			 			<th class=header2>Encryption</th>
 			 		</tr>";
-			 		
+
 foreach( $wlan_enctypes as $i => $attrs ){
 	if( $attrs['enc']=='wep/psk' )
 		$class = "style='color:red;'";
 	else if( $attrs['enc']=='wpa/wpa2' )
 		$class = "style='color:green;'";
-	else
-		$attrs['enc'] = 'unknown';	
+	else{
+		$attrs['enc'] = 'unknown';
+		$class = "style=''";
+	}
 	
 	$feature1 .= 	"<tr>
 						<td>$attrs[ssid]</td>
 						<td>$attrs[d_cnt]</td>
 						<td>$attrs[p_cnt]</td>
-						<td $class >$attrs[enc] %</td>
+						<td $class >$attrs[enc]</td>
 					 <tr/>";
 }
 $feature1 .= "	</table>
@@ -104,7 +106,7 @@ else
 $width = round($pct*5); 
 $tot_width = round(100*5);		
 
-$feature2= "<div id=protected >
+$feature3= "<div id=protected >
 				<p>3.Link Layer Security</p>
 				(count the actually protected, wifi.data packets)
 				<table>
