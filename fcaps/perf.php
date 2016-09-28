@@ -215,31 +215,46 @@ $step = 30; #ms
 
 $feature3= "<div id=resp_dt >
 				<p>3.HTTP response times</p>
-				(track the variance of http response delays)
-
+				(track the variance of http response delays.)</br> http_d = f(t)
+				</br></br>
 				<table class=align-left>
-					<tr>";
-
+					<tr>
+						<td class=y_axis
+							style='vertical-align:top;'>$max_y ms
+						</td>
+						<td rowspan=2 class=border-bottom>
+							<table>";
 
 $i=0;
 foreach( $resp_times as $row){	
-	if($i++>200) break;
-	$feature3.="		<td class=cols>
-							<table class=cols_container>
-								<tbody>";
+	if($i++>190) break;
+	$feature3.="				<td class=cols>
+									<table class=cols_container>
+										<tbody>";
 	for( $h=$min_y; ;$h+=$step ){
-		$feature3 .= "				<tr>
-										<td class=around_div>
-											<div class=bar></div>
-										</td>
-									</tr>";
+		$feature3 .= "						<tr>
+												<td class=around_div>
+													<div class=bar></div>
+												</td>
+											</tr>";
 		if( $h>=$row[1] )	break;
 	}
-	$feature3.="				</tbody>
-							</table>
-						</td>";
+	$feature3.="						</tbody>
+									</table>
+								</td>";
 }
-$feature3.="		</tr>
+$feature3.="				</table>
+						</td>	
+					</tr>
+					<tr>	
+						<td class=y_axis 
+							style='vertical-align:bottom'>$min_y ms</td>
+					</tr>
+				</table>
+				<table style='width:850px'>
+					<td class=pad></td>
+					<td class=x_axis style='text-align:left;width:410px;margin-left:0'>$min_x</td>
+					<td class=x_axis style='text-align:right;width:410px;margin-right:0'>$max_x</td>
 				</table>";	 
 			 
 			 

@@ -29,6 +29,29 @@ td.cols{
 	padding:0;
 }
 
+td.y_axis{
+	height:auto;
+	text-align:right;
+	white-space:nowrap;
+	border-right:3px solid blue;
+	color:blue;
+	margin-right:3px;
+}
+
+td.border-bottom{
+	border-bottom:3px solid blue;
+}
+
+td.pad{
+	width:73px;
+}
+
+td.x_axis{
+	vertical-align:top;
+	color:blue;
+}
+
+
 table.cols_container{
 	border-spacing:0;
 }
@@ -37,6 +60,8 @@ td.around_div{
 	padding:0;
 	border:none;
 }
+
+
 
 td.allin{
 	border:none;
