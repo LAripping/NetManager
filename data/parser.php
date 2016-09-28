@@ -41,6 +41,11 @@ function fill_fields($parser,$element_name,$element_attrs){
                 case "frame.protocols":
                 	$fields['protocols'] = $element_attrs['SHOW'];
                 	error_log("--contains protocols: $fields[protocols]\n",3,$logfile);
+                	
+                	if( strstr($fields['protocols'],'eapol') ){
+                        $fields['encryption'] = 'wpa/wpa2';
+                        error_log("--using WPA-WPA2 encryption\n",3,$logfile);
+                    }
                 	break;    
 
                 //WLAN fields

@@ -437,16 +437,17 @@ function insert_rest( $fields,$count ){
     					    
     if( array_key_exists('DEVICE_DST__ip_address',$fields) )
     	$q_multy .= sprintf($q_update_dd, 'ip_address',
-    					    $fields['DEVICE_DST__ip_address']);	
+    					    $fields['DEVICE_DST__ip_address']);
+    					    
+	if( array_key_exists('encryption',$fields) )
+		$q_multy .= sprintf($q_update_w, 'encryption',
+  								$fields['encryption']);		
     					    
   	if( array_key_exists('is_router',$fields) ){
   		$q_multy .= sprintf($q_update_sd, 'is_router',
   							$fields['is_router']);
   		$q_multy .= sprintf($q_update_w, 'ap_address',
-  							$fields['source_hw_address']);
-  		if( array_key_exists('encryption',$fields) )
-  			$q_multy .= sprintf($q_update_w, 'encryption',
-  								$fields['encryption']);					
+  							$fields['source_hw_address']);	
   									
   	  	if( array_key_exists('supported_rates',$fields) )
   			$q_multy .= sprintf($q_update_w, 'supported_rates',

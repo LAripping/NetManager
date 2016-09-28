@@ -71,7 +71,7 @@ $l5 = get_ssl_http_pct(); #[ #ofHTTP, #ofSSL ]
 if($l5[0]==0) 
 	$pct = 0;	
 else
-	$pct = round($l5[1] / $l5[0] * 100,2);
+	$pct = round($l5[1] / ($l5[0]+$l5[1]) * 100,2);
 
 $width = round($pct*5); 
 $tot_width = round(100*5);		
@@ -81,16 +81,16 @@ $feature2= "<div id=l5sec >
 				(count the fraction of HTTP packets that use the SSL protocol)
 				<table>
 			 		<tr>
-			 			<th class=header style='width:100px;'>Packets using SSL</th>			
+			 			<th class=header >Packets using SSL</th>			
 			 			<th class=header style='width:{$tot_width}px;'>SSL/HTTP Percentage $pct %</th>
-			 			<th class=header style='width:100px;'>Packets using plain HTTP</th>
+			 			<th class=header >Packets using plain HTTP</th>
 			 		</tr>
 			 		<tr>
 						<td>$l5[1]</td>
-						<td class='no_pad'>
+						<td class=no-pad>
 							<div class=bar style='width:{$width}px;'></div>
 						</td>
-						<td>$l5[0]</td>
+						<td style='text-align:right'>$l5[0]</td>
 					 <tr/>
 			 	</table>
 			 </div> 
@@ -99,7 +99,7 @@ $feature2= "<div id=l5sec >
 /******************************** FEATURE 3 ******************************/
 $prot = get_protected_pct(); #[ #total, #ofPROT ] 		
 if($prot[0]==0)
-	$pct = round($prot[1] / $prot[0] * 100,2);
+	$pct = round($prot[1] / ($prot[0]+$prot[1]) * 100,2);
 else
 	$pct = 0;
 	
@@ -111,16 +111,16 @@ $feature3= "<div id=protected >
 				(count the actually protected, wifi.data packets)
 				<table>
 			 		<tr>
-			 			<th class=header style='width:100px;'>Protected Packets</th>			
+			 			<th class=header >Protected Packets</th>			
 			 			<th class=header style='width:{$tot_width}px;'>Protected Percentage $pct %</th>
-			 			<th class=header style='width:100px;'>Unprotected data</th>
+			 			<th class=header >Unprotected data</th>
 			 		</tr>
 			 		<tr>
 						<td>$prot[1]</td>
-						<td class='no_pad'>
+						<td class=no-pad>
 							<div class=bar style='width:{$width}px;'></div>
 						</td>
-						<td>$prot[0]</td>
+						<td style='text-align:right;'>$prot[0]</td>
 					 <tr/>
 			 	</table>
 			 </div> 
