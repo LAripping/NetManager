@@ -204,23 +204,17 @@ function get_recent_time(){
 function get_traffic_in_range( $capt_start,$capt_end ){
 	global $conn;
 	
-	$q = "	SELECT COUNT(*) AS c
+	$q = "	SELECT SUM(packet_size) AS s
 			FROM packet
 			WHERE	FROM_UNIXTIME(time_captured) >=
-				 	UNIX_TIMESTAMP(
-				 		STR_TO_DATE('$capt_start',
-				 					'%Y-%m-%dT%H:%i')
-				 	)
+				 	STR_TO_DATE('$capt_start','%Y-%m-%dT%H:%i')
 			AND		FROM_UNIXTIME(time_captured) <=
-				 	UNIX_TIMESTAMP(
-				 		STR_TO_DATE('$capt_end',
-				 					'%Y-%m-%dT%H:%i')
-				 	);";
+				 	STR_TO_DATE('$capt_end','%Y-%m-%dT%H:%i');";
 				 	
 	if(! $result = $conn->query($q) ) die("$conn->error");
 	
 	while( $row = $result->fetch_assoc() ){
-		$ret = $row['c'];
+		$ret = $row['s'];
 	}
 	
 	$result->free();	

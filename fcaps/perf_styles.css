@@ -21,6 +21,8 @@ th.header2{ 	background-color: purple; color:white}
 th.subheader{ 	background-color: mediumaquamarine; }
 
 
+
+
 td.cols{
 	vertical-align:bottom;
 	border:none;
@@ -40,10 +42,22 @@ td.allin{
 	border:none;
 }
 
+
 table.align-left{
 	margin-left:0;
+	margin-bottom:10px;
 }
 
+input{
+	width:200px;
+}
+
+input.button {
+	margin-left:1px;
+	margin-top:2px;
+	width:80px;
+	margin-bottom:30px;
+}
 
 #flows table,
 #load table {
@@ -73,7 +87,6 @@ table.align-left{
 }
 
 p.legend{
-	text-decoration:strike;
 	width:100px;
 	display:inline;
 	color:white;

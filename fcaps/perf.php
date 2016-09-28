@@ -32,27 +32,40 @@ $content = '<h3>Performance Management</h3></br>';
 $capt_start = get_oldest_time(); 
 $capt_end	= get_recent_time(); 
 
-$global_traffic = get_traffic_in_range( $capt_start,$capt_end );
-echo "traffic: $global_traffic";
-
-if( isset($_POST['submit']) ){
+if(! isset($_POST['submit']) ){
+	$traffic = get_traffic_in_range( $capt_start,$capt_end );
+} else{
 	$given_start=$_POST['start'];
 	$given_end	=$_POST['end'];
 	$traffic = get_traffic_in_range( $given_start,$given_end );
 }
 
-#TODO convert to MB/GB : 1 MB = 1.000.000 B 
+$unit = 'Bytes';
+if($traffic > 1000){
+	$traffic /= 1000;
+	$unit = 'MB';
+}
+if($traffic > 1000){
+	$traffic /= 1000;
+	$unit = 'GB';
+}
+if($traffic > 1000){
+	$traffic /= 1000;
+	$unit = 'TB';
+}
+$traffic = round($traffic,2);
 
 $feature1= "<div id=load>
 				<form action='/fcaps/perf.php' method='post'>
 					<p>1.Traffic load</p>
 					(sum the size of all packets exchanged within a given time reange)
 					<table class=align-left>
-				 		<tr>
-				 			<th>Cumulative traffic captured:</th>
+				 		<tr>"
+.(!isset($_POST['submit'])?" <th>Traffic captured:</br>(all packets)</th>" :
+						  " <th>Traffic captured:</th>")."
 				 			<td>
-				 				<input type='number' readonly 
-				 					   value='$global_traffic'> Bytes
+				 				<input type='number' readonly style='height:2em;' 
+									value='$traffic'> $unit
 				 			</td>
 				 		</tr>
 				 		<tr>
@@ -74,7 +87,8 @@ $feature1= "<div id=load>
 				 			<td>
 				 				<input type='datetime-local' required 
 				 					   min='$capt_start'
-				 					   max='$capt_end'>
+				 					   max='$capt_end'
+				 					   name='start'>
 				 			</td>
 				 		</tr>						 		
 				 		<tr>
@@ -82,10 +96,14 @@ $feature1= "<div id=load>
 				 			<td>
 				 				<input type='datetime-local' required
 				 					   min='$capt_start'
-				 					   max='$capt_end'>
+				 					   max='$capt_end'
+				 					   name='end'>
 				 			</td>
 						</tr>
 					</table>
+					<input class='button' type='submit' 
+						name='submit' value='Get traffic'>
+					<input class='button' type='reset'>
 				</form>
 			</div>";
 			 		
@@ -126,7 +144,7 @@ $feature2= "<div id=flows >
 				Legend:
 				<p class=legend style='background-color:red;'> Minimum value observed </p> 
 				<p class=legend style='background-color:green;'> Maximum value observed</p>
-				</br></br>
+				</br>
 				<table class=align-left>
 			 		<tr>
 			 			<th class=subheader>Link no.</th>
@@ -226,14 +244,14 @@ $feature3.="		</tr>
 			 
 			 
 /****************************** PUTTING IT TOGETHER **********************/		
-$content .= "<table>
+$content .= "<table style='margin-left:0;'>
 				<tr>
 					<td class=allin> $feature1 </td>
 				</tr>
-				<tr>
+				<tr class=air>
 					<td class=allin> $feature2 </td>
 				</tr>
-				<tr>
+				<tr class=air>
 					<td class=allin colspan=2> $feature3 </td>
 				</tr>
 			</table>";
